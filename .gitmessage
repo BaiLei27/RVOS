@@ -1,0 +1,48 @@
+<type>(scope): subject
+
+
+# <body>
+...
+# <footer>
+...
+
+# # type:
+#   (modify)
+#           <mdfy> {modify files or a few change}
+#   (adjust)
+#           <adj> {adjust files folder}
+#     (initialization):
+#           <init> {Project initialization}
+#     (features):
+#           <feat> {Adding new features}
+#     (build):
+#           <bld> {Dependency-related content}
+#     (fix):
+#           <fix> {Fixing bugs}
+#     (documents):
+#           <docs> {Modify documentation only}
+#     (delete):
+#           <del> {Delete content, files}
+#     (style):
+#           <sty> {Only the spaces, formatting indentation, commas, etc. were changed, not the code logic}
+#     (refactor):
+#           <ref> {Code refactoring, no new features added or bugs fixed}
+#     (performance):
+#           <perf> {Optimization-related, such as improving performance, experience}
+#     (tests):
+#           <test> {Adding test cases}
+#     (chore):
+#           <chr> {Changed the build process, or added dependencies, tools, etc.}
+#     (revert):
+#           <rvt> {Rollback to the previous version}
+#     (miscellaneous):
+#           <misc> {Miscellaneous other changes}
+
+# scope: (can be empty)
+#     {What modules are included in this revision}
+# subject
+#     {Commit Overview No more than 63 characters}
+# body
+#     {Commit details can be displayed in new lines}
+# footer
+#     {Usually a link to fix a bug or notes}
