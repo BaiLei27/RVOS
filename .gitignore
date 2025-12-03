@@ -1,0 +1,105 @@
+#==============================================================================#
+# This file specifies intentionally untracked files that git should ignore.
+# See: https://git-scm.com/docs/gitignore
+#==============================================================================#
+
+#==============================================================================#
+# File extensions to be ignored anywhere in the tree.
+#==============================================================================#
+# Temp files created by most text editors.
+*~
+# Merge files created by git.
+*.orig
+# Reject files created by patch.
+*.rej
+
+# Byte compiled python modules.
+*.pyc
+
+# vim swap files
+.*.sw?
+.sw?
+
+#OS X specific files.
+.DS_store
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# git cmd generate temporary file
+*.diff
+*.patch
+/*.t*z
+*.asm
+
+# Ignore the user specified CMake presets in subproject directories.
+**/CMakeUserPresets.json
+
+# Nested build directory
+build*/
+
+#==============================================================================#
+# Explicit files to ignore (only matches one).
+#==============================================================================#
+# Various tag programs
+/compile_commands.json
+
+# Visual Studio built-in CMake configuration
+/CMakeSettings.json
+
+# CLion project configuration
+/.idea
+
+#==============================================================================#
+# Directories to ignore (do not add trailing '/'s, they skip symlinks).
+#==============================================================================#
+# VS and VSCode config files.
+.vscode/
+!/\.vscode/
+**/.vscode/settings.json
+
+# pythonenv for github Codespaces
+pythonenv*
+
+# clangd index. (".clangd" is a config file now, thus trailing slash)
+.clangd/
+.cache
+
+# Doxygen output files
+/docs/html/
+
+# static analyzer regression testing project files
+
+# automodapi puts generated documentation files here.
+
+# folder or file that is not ignored (start with `!`)

@@ -1,0 +1,206 @@
+---
+# ^\s*bugprone-[^\s]*.*\n?
+# update:24/10/13/23:42  version: 24-10-13.01
+Checks: '-*,
+        bugprone*,
+        -bugprone-argument-comment,
+        -bugprone-crtp-constructor-accessibility,
+        -bugprone-dynamic-static-initializers,
+        -bugprone-easily-swappable-parameters,
+        -bugprone-fold-init-type,
+        -bugprone-implicit-widening-of-multiplication-result,
+        -bugprone-inaccurate-erase,
+        -bugprone-incorrect-enable-if,
+        -bugprone-incorrect-roundings,
+        -bugprone-misplaced-operator-in-strlen-in-alloc,
+        -bugprone-move-forwarding-reference,
+        -bugprone-multiple-new-in-one-expression,
+        -bugprone-not-null-terminated-result,
+        -bugprone-posix-return,
+        -bugprone-reserved-identifier,
+        -bugprone-return-const-ref-from-parameter,
+        -bugprone-shared-ptr-array-mismatch,
+        -bugprone-sizeof-container,
+        -bugprone-standalone-empty,
+        -bugprone-string-integer-assignment,
+        -bugprone-stringview-nullptr,
+        -bugprone-suspicious-memory-comparison
+        -bugprone-suspicious-missing-comma,
+        -bugprone-suspicious-realloc-usage,
+        -bugprone-suspicious-string-compare,
+        -bugprone-suspicious-stringview-data-usage
+        -bugprone-swapped-arguments,
+        -bugprone-throw-keyword-missing,
+        -bugprone-unchecked-optional-access,
+        -bugprone-undefined-memory-manipulation,
+        -bugprone-undelegated-constructor,
+        -bugprone-unhandled-exception-at-new,
+        -bugprone-unique-ptr-array-mismatch,
+        -bugprone-unused-raii,
+        -bugprone-unused-return-value,
+
+        cert-dcl50-cpp,
+        cert-dcl58-cpp,
+        cert-err58-cpp,
+        cert-mem57-cpp,
+        cert-oop57-cpp,
+        cert-oop58-cpp,
+
+        clang-analyzer-core.*,
+        clang-analyzer-cplusplus.*,
+
+        cppcoreguidelines*,
+        -cppcoreguidelines-avoid-magic-numbers,
+        -cppcoreguidelines-avoid-c-arrays,
+        -cppcoreguidelines-avoid-capturing-lambda-coroutines,
+        -cppcoreguidelines-avoid-do-while,
+        -cppcoreguidelines-explicit-virtual-functions,
+        -cppcoreguidelines-macro-usage,
+        -cppcoreguidelines-missing-std-forward,
+        -cppcoreguidelines-narrowing-conversions,
+        -cppcoreguidelines-no-malloc,
+        -cppcoreguidelines-no-suspend-with-lock,
+        -cppcoreguidelines-non-private-member-variables-in-classes,
+        -cppcoreguidelines-owning-memory,
+        -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+        -cppcoreguidelines-pro-bounds-constant-array-index,
+        -cppcoreguidelines-pro-type-cstyle-cast,
+        -cppcoreguidelines-pro-type-reinterpret-cast,
+        -cppcoreguidelines-pro-type-union-access,
+        -cppcoreguidelines-pro-type-vararg,
+        -cppcoreguidelines-special-member-functions,
+
+        google-build-namespaces,
+        google-build-using-namespace,
+        google-default-arguments,
+        google-explicit-constructor,
+        google-readability-casting,
+        hicpp-exception-baseclass,
+        hicpp-multiway-paths-covered,
+        llvm-namespace-comment,
+        misc-definitions-in-headers,
+        misc-header-include-cycle,
+        misc-include-cleaner,
+        misc-misplaced-const,
+        misc-no-recursion,
+        misc-redundant-expression,
+        misc-static-assert,
+        misc-unconventional-assign-operator,
+        misc-use-anonymous-namespace,
+
+        modernize*,
+        -modernize-avoid-c-arrays,
+        -modernize-deprecated-ios-base-aliases,
+        -modernize-macro-to-enum,
+        -modernize-min-max-use-initializer-list,
+        -modernize-pass-by-value,
+        -modernize-redundant-void-arg,
+        -modernize-replace-auto-ptr,
+        -modernize-replace-disallow-copy-and-assign-macro,
+        -modernize-replace-random-shuffle,
+        -modernize-use-auto,
+        -modernize-use-constraints,
+        -modernize-use-nodiscard,
+        -modernize-use-noexcept,
+        -modernize-use-std-format,
+        -modernize-use-std-print,
+        -modernize-use-trailing-return-type,
+        -modernize-use-transparent-functors,
+        -modernize-use-uncaught-exceptions,
+        -modernize-use-using,
+        -modernize-use-bool-literals,
+
+        performance-avoid-endl,
+        performance-enum-size,
+        performance-faster-string-find,
+        performance-inefficient-algorithm,
+        performance-inefficient-string-concatenation,
+        performance-noexcept-move-constructor,
+        performance-unnecessary-value-param,
+
+        readability*,
+        -readability-avoid-unconditional-preprocessor-if,
+        -readability-container-size-empty,
+        -readability-container-contains,
+        -readability-function-cognitive-complexity,
+        -readability-function-size,
+        -readability-identifier-length,
+        -readability-inconsistent-declaration-parameter-name,
+        -readability-isolate-declaration,
+        -readability-magic-numbers,
+        -readability-make-member-function-const,
+        -readability-math-missing-parentheses,
+        -readability-misleading-indentation,
+        -readability-misplaced-array-index,
+        -readability-non-const-parameter,
+        -readability-operators-representation,
+        -readability-redundant-access-specifiers,
+        -readability-redundant-string-cstr,
+        -readability-redundant-string-init,
+        -readability-suspicious-call-argument,
+        -readability-use-anyofallof,
+        -readability-use-std-min-max,
+'
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*'
+# ExcludeHeaderFilterRegex: '.*\/q.*\.h'
+# SystemHeaders: 'true'
+FormatStyle: 'file'
+UseColor: 'true'
+CheckOptions:
+  # 易出错代码结构 (Bugprone)
+  bugprone-easily-swappable-parameters.QualifiersMix: 'true'
+  bugprone-misplaced-widening-cast.CheckImplicitCasts: 'true'
+
+  # C++核心指南(cppcoreguidelines)
+  cppcoreguidelines-macro-usage.CheckCapsOnly: 'true'
+  cppcoreguidelines-init-variables.MathHeader: '<cmath>'
+  cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreUnnamedParams: 'true'
+  cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreNonDeducedTemplateTypes: 'true'
+
+  # 现代化(Modernize)
+  modernize-use-override.IgnoreDestructors: 'true'
+
+  # 可读性(Readability)
+  readability-identifier-length.IgnoredVariableNames: '^[abcijkmnpxyz]$'
+  readability-identifier-length.MinimumParameterNameLength: '2'
+  readability-identifier-length.MinimumVariableNameLength: '2'
+  readability-braces-around-statements.ShortStatementLines: '2'
+
+  readability-identifier-naming.AbstractClassCase: 'CamelCase'
+  readability-identifier-naming.AbstractClassPrefix: 'I'
+  readability-identifier-naming.ClassCase: 'CamelCase'
+  readability-identifier-naming.ConstexprFunctionCase: 'UPPER_CASE'
+  readability-identifier-naming.ConstantCase: 'UPPER_CASE'
+  readability-identifier-naming.EnumCase: 'CamelCase'
+  readability-identifier-naming.GlobalConstantPrefix: 'G_'
+  # readability-identifier-naming.GlobalFunctionCase: 'CamelCase'
+  readability-identifier-naming.GlobalVariablePrefix: 'g_'
+  readability-identifier-naming.LocalPointerCase: 'CamelCase'
+  readability-identifier-naming.LocalPointerPrefix: 'p'
+  readability-identifier-naming.NamespaceCase: 'camelBack'
+  readability-identifier-naming.ParameterCase: 'camelBack'
+  readability-identifier-naming.PointerParameterCase: 'CamelCase'
+  readability-identifier-naming.PointerParameterPrefix: 'p'
+  readability-identifier-naming.PrivateMemberCase: 'CamelCase'
+  readability-identifier-naming.PrivateMemberSuffix: '_'
+  readability-identifier-naming.PrivateMethodCase: 'camelBack'
+  readability-identifier-naming.ProtectedMemberCase: 'CamelCase'
+  readability-identifier-naming.ProtectedMemberSuffix: '_'
+  readability-identifier-naming.ProtectedMethodCase: 'camelBack'
+  readability-identifier-naming.PublicMemberCase: 'camelBack'
+  readability-identifier-naming.PublicMemberSuffix: '_'
+  readability-identifier-naming.PublicMethodCase: 'CamelCase'
+  readability-identifier-naming.StaticVariablePrefix: 's_'
+  readability-identifier-naming.StructCase: 'CamelCase'
+  readability-identifier-naming.UnionCase: 'CamelCase'
+  # readability-identifier-naming.TypeAliasCase: 'camelBack'
+  readability-identifier-naming.TypeAliasSuffix: '_u'
+  readability-identifier-naming.VariableCase: 'camelBack'
+
+  readability-implicit-bool-conversion.AllowPointerConditions: 'true'
+
+  # 杂项(Miscellaneous)
+  misc-include-cleaner.MissingIncludes: 'false'
+
+...
