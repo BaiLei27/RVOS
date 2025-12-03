@@ -12,5 +12,5 @@ RVOS aims to provide a compact and comprehensible codebase for exploring:
 * Simple kernel infrastructure
 * Hardware–software interaction from power-on to running C++ code
 
-It is designed as a personal research project with future potential for commercial use.
+It is designed as a personal research project to deepen understanding of operating systems and kernel
 
