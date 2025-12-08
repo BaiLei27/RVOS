@@ -25,7 +25,7 @@ Example usage:
    if(ClangFormat_FOUND)
      message("ClangFormat found: ${clangFormatExe}")
    endif()
-   
+
 #]=======================================================================]
 
 # Look for 'clang-format'
@@ -36,15 +36,13 @@ set(clangFormatNames clang-format)
 # in the MSYS shell.
 #
 if(CMAKE_HOST_WIN32)
-    if(NOT CMAKE_GENERATOR MATCHES "MSYS")
-        set(clangFormatNames clang-format.exe clang-format)
-
-        # VSCode C/C++ extension search path for Windows
-        file(GLOB vscodeClangToolsPath
-            "$ENV{USERPROFILE}/.vscode/extensions/ms-vscode.cpptools-*/LLVM/bin"
-        )
-    endif()
+    set(clangFormatNames clang-format.exe clang-format)
+    set(vscodeClangToolsPath "$ENV{USERPROFILE}/.vscode/extensions/ms-vscode.cpptools-*/LLVM/bin")
+else()
+    set(vscodeClangToolsPath "$ENV{HOME}/.vscode/extensions/ms-vscode.cpptools-*/LLVM/bin")
 endif()
+
+file(GLOB vscodeClangToolsPath "${vscodeClangToolsPath}")
 
 # First search the PATH and specific locations for clang-format.
 find_program(clangFormatExe

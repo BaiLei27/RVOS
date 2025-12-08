@@ -37,15 +37,13 @@ set(clangTidyNames clang-tidy)
 # in the MSYS shell.
 #
 if(CMAKE_HOST_WIN32)
-    if(NOT CMAKE_GENERATOR MATCHES "MSYS")
-        set(clangTidyNames clang-tidy.exe clang-tidy)
-
-        # VSCode C/C++ extension search path for Windows
-        file(GLOB vscodeClangToolsPath
-            "$ENV{USERPROFILE}/.vscode/extensions/ms-vscode.cpptools-*/LLVM/bin"
-        )
-    endif()
+    set(clangTidyNames clang-tidy.exe clang-tidy)
+    set(vscodeClangToolsPath "$ENV{USERPROFILE}/.vscode/extensions/ms-vscode.cpptools-*/LLVM/bin")
+else()
+    set(vscodeClangToolsPath "$ENV{HOME}/.vscode/extensions/ms-vscode.cpptools-*/LLVM/bin")
 endif()
+
+file(GLOB vscodeClangToolsPath "${vscodeClangToolsPath}")
 
 # First search the PATH and specific locations for clang-tidy.
 find_program(clangTidyExe
