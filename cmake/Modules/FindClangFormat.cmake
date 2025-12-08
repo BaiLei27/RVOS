@@ -25,7 +25,7 @@ Example usage:
    if(ClangFormat_FOUND)
      message("ClangFormat found: ${clangFormatExe}")
    endif()
-   
+
 #]=======================================================================]
 
 # Look for 'clang-format'
@@ -34,22 +34,37 @@ set(clangFormatNames clang-format)
 
 # Prefer .cmd variants on Windows unless running in a Makefile
 # in the MSYS shell.
-#
-if(CMAKE_HOST_WIN32)
-    if(NOT CMAKE_GENERATOR MATCHES "MSYS")
-        set(clangFormatNames clang-format.exe clang-format)
+set(extensionPathSuffix "extensions/ms-vscode.cpptools-*/LLVM/bin")
 
-        # VSCode C/C++ extension search path for Windows
-        file(GLOB vscodeClangToolsPath
-            "$ENV{USERPROFILE}/.vscode/extensions/ms-vscode.cpptools-*/LLVM/bin"
-        )
-    endif()
+if(CMAKE_HOST_WIN32)
+    set(clangFormatNames clang-format.exe clang-format)
+    set(vscodeFolder "$ENV{USERPROFILE}/.vscode")
+    set(vscodeServerFolder "$ENV{USERPROFILE}/.vscode-server")
+else()
+    set(vscodeFolder "$ENV{HOME}/.vscode")
+    set(vscodeServerFolder "$ENV{HOME}/.vscode-server")
 endif()
+
+if(EXISTS "${vscodeFolder}" AND IS_DIRECTORY "${vscodeFolder}")
+    file(GLOB matchedPaths "${vscodeFolder}/${extensionPathSuffix}")
+elseif(EXISTS "${vscodeServerFolder}" AND IS_DIRECTORY "${vscodeServerFolder}")
+    file(GLOB matchedPaths "${vscodeServerFolder}/${extensionPathSuffix}")
+endif()
+
+message(VERBOSE "matchedPaths: '${matchedPaths}'")
+
+if(matchedPaths)
+    list(LENGTH matchedPaths pathCount)
+    math(EXPR lastIdx "${pathCount} - 1")
+    list(GET matchedPaths ${lastIdx} targetSearchPath)
+endif()
+
+message(VERBOSE "targetSearchPath: '${targetSearchPath}'")
 
 # First search the PATH and specific locations for clang-format.
 find_program(clangFormatExe
     NAMES ${clangFormatNames}
-    PATHS ${vscodeClangToolsPath}
+    PATHS ${targetSearchPath}
     DOC "clang-format command line client"
 )
 

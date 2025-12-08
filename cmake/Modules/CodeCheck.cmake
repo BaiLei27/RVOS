@@ -3,8 +3,52 @@
 find_package(ClangFormat)
 find_package(ClangTidy)
 
-set_property(GLOBAL PROPERTY codeCheckFormatFiles)
-set_property(GLOBAL PROPERTY codeCheckTidyFiles)
+set_property(GLOBAL PROPERTY checkFmtFiles)
+set_property(GLOBAL PROPERTY checkTidyFiles)
+set(excludeExtsBase .ld .s)
+
+function(_srcFilesParse target propertyName exclude)
+    if(TARGET ${target})
+        get_target_property(fmtFiles ${target} SOURCES)
+        get_property(allParseFiles GLOBAL PROPERTY ${propertyName})
+
+        foreach(f ${fmtFiles})
+            get_filename_component(fileExt ${f} EXT)
+            get_filename_component(abs_f ${f} ABSOLUTE)
+            file(RELATIVE_PATH rel_f ${CMAKE_SOURCE_DIR} ${abs_f})
+            string(TOLOWER ${fileExt} fExtLow) # convert to lowercase
+
+            if(fExtLow IN_LIST excludeExtsBase)
+                message(VERBOSE "CodeCheck '${target}': Excluding '${f}' (ext:${fileExt})")
+                continue()
+            endif()
+
+            set(isExcl FALSE)
+
+            foreach(p ${exclude})
+                if(${rel_f} MATCHES ${p})
+                    set(isExcl TRUE)
+                    message(VERBOSE "CodeCheck '${target}': Excluding '${f}' (pattern: ${p})")
+                    break()
+                endif()
+            endforeach()
+
+            if(isExcl)
+                continue()
+            endif()
+
+            list(APPEND allParseFiles ${rel_f})
+        endforeach()
+
+        list(REMOVE_DUPLICATES allParseFiles)
+        message(VERBOSE "CodeCheck: final ${propertyName} colletc: ${allParseFiles}")
+
+        set_property(GLOBAL PROPERTY ${propertyName} ${allParseFiles})
+
+    else()
+        message(WARNING "'${CMAKE_CURRENT_FUNCTION}' : target '${target}' does not exist")
+    endif()
+endfunction()
 
 # === Format ===
 if(ClangFormat_FOUND)
@@ -14,43 +58,15 @@ if(ClangFormat_FOUND)
         set(multiValueArgs EXCLUDES)
         cmake_parse_arguments(fmt "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-        set(BASE_DIR_FOR_RELATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
-
-        if(TARGET ${target})
-            get_target_property(srcFiles ${target} SOURCES)
-            get_property(allFmtFiles GLOBAL PROPERTY codeCheckFormatFiles)
-
-            foreach(f ${srcFiles})
-                set(excl FALSE)
-                get_filename_component(absf ${f} ABSOLUTE)
-                file(RELATIVE_PATH relf ${CMAKE_SOURCE_DIR} ${absf})
-
-                foreach(pattern ${fmt_EXCLUDES})
-                    if(f MATCHES pattern)
-                        set(excl TRUE)
-                        message(VERBOSE "FormatCode: excluding ${f} matches ${pattern}")
-                    endif()
-                endforeach()
-
-                if(NOT excl)
-                    list(APPEND allFmtFiles ${relf})
-                endif()
-
-            endforeach()
-
-            list(REMOVE_DUPLICATES allFmtFiles)
-            set_property(GLOBAL PROPERTY codeCheckFormatFiles ${allFmtFiles})
-        else()
-            message(WARNING "FormatCode: target '${target}' does not exist")
-        endif()
+        _srcFilesParse(${target} checkFmtFiles "${fmt_EXCLUDES}")
     endfunction()
 
     function(DefFormatTarget name)
-        get_property(allFmtFiles GLOBAL PROPERTY codeCheckFormatFiles)
+        get_property(allFmtFiles GLOBAL PROPERTY checkFmtFiles)
 
         if(allFmtFiles)
             set(cmds ${clangFormatExe} -i -style=file -fallback-style=webkit -verbose ${allFmtFiles})
-            # message(++> ${cmds})
+            message(VERBOSE ++> ${cmds})
             list(LENGTH allFmtFiles cnt)
             add_custom_target(
                 ${name}
@@ -59,60 +75,36 @@ if(ClangFormat_FOUND)
                 COMMENT "Running clang-format on ${cnt} files"
             )
         else()
-            message(STATUS "DefFormatTarget ${name}: no files to format")
+            message(STATUS "'${CMAKE_CURRENT_FUNCTION}' : no files to ${name}")
         endif()
-
     endfunction()
 else()
     message(WARNING "clang-format not found; format target disabled")
 endif()
 
 # === Tidy ===
-if(ClangTidy_FOUND) #don't use ${ClangTidy_FOUND}
-    option(enTidyAuto "Enable clang-tidy on compile" OFF)
-    set(doClangTidy "${clangTidyExe}" CACHE STRING "clang-tidy command")
-
+if(ClangTidy_FOUND) # don't use ${ClangTidy_FOUND}
     function(TidyCode target)
-        if(TARGET ${target})
-            if(enTidyAuto)
-                set_property(TARGET ${target} PROPERTY
-                    C_CLANG_TIDY "${doClangTidy}"
-                    CXX_CLANG_TIDY "${doClangTidy}")
-            endif()
+        option(enTidyAuto "Enable clang-tidy on compile" OFF)
+        set(doClangTidy "${clangTidyExe}" CACHE STRING "clang-tidy command")
+        _srcFilesParse(${target} checkTidyFiles "")
 
-            get_target_property(srcFiles ${target} SOURCES)
-            get_property(allTidyFiles GLOBAL PROPERTY codeCheckTidyFiles)
-            set(excludeExts ".h" ".hpp" ".hh" ".s")
-
-            foreach(f ${srcFiles})
-                get_filename_component(fileExt ${f} EXT)
-                string(TOLOWER ${fileExt} fileext) # convert to lowercase
-
-                if(NOT fileext IN_LIST excludeExts)
-                    get_filename_component(absf ${f} ABSOLUTE)
-                    # message(++> ${absf})
-                    list(APPEND allTidyFiles ${absf})
-                else()
-                    message(VERBOSE "TidyCode: Excluding file ${f} (ext: ${fileext})")
-                endif()
-
-            endforeach()
-
-            unset(excludeExts)
-            list(REMOVE_DUPLICATES allTidyFiles)
-            set_property(GLOBAL PROPERTY codeCheckTidyFiles ${allTidyFiles})
-        else()
-            message(WARNING "TidyCode: target '${target}' does not exist")
+        if(enTidyAuto)
+            set_property(TARGET ${target} PROPERTY
+                C_CLANG_TIDY "${doClangTidy}"
+                CXX_CLANG_TIDY "${doClangTidy}")
         endif()
     endfunction()
 
     function(DefTidyTarget name)
-        get_property(allTidyFiles GLOBAL PROPERTY codeCheckTidyFiles)
+        get_property(allTidyFiles GLOBAL PROPERTY checkTidyFiles)
 
         if(allTidyFiles)
-            set(cmds ${doClangTidy} -p ${CMAKE_BINARY_DIR} ${allTidyFiles})
+            set(cmds ${doClangTidy} --system-headers=false -p ${CMAKE_BINARY_DIR} ${allTidyFiles})
+
             # set(cmds ${doClangTidy} ${allTidyFiles})
-            # message(++> ${cmds})
+            message(VERBOSE ++> ${cmds})
+
             list(LENGTH allTidyFiles cnt)
             add_custom_target(
                 ${name}
@@ -121,22 +113,24 @@ if(ClangTidy_FOUND) #don't use ${ClangTidy_FOUND}
                 COMMENT "Running clang-tidy on ${cnt} files"
             )
         else()
-            message(STATUS "DefTidyTarget ${name}: no files to tidy")
+            message(STATUS "'${CMAKE_CURRENT_FUNCTION}' : no files to ${name}")
         endif()
-
     endfunction()
+
 else()
     message(WARNING "clang-tidy not found; tidy target disabled")
 endif()
 
-function(SetupCodeChecks target)
-    if(ClangFormat_FOUND)
-        FormatCode(${target})
-    endif()
+function(SetupCodeChecks)
+    foreach(target IN LISTS ARGV)
+        if(ClangFormat_FOUND AND TARGET ${target})
+            FormatCode(${target})
+        endif()
 
-    if(ClangTidy_FOUND)
-        TidyCode(${target})
-    endif()
+        if(ClangTidy_FOUND AND TARGET ${target})
+            TidyCode(${target})
+        endif()
+    endforeach()
 endfunction()
 
 function(DefineCodeChecksTargets fmtName tidyName)
