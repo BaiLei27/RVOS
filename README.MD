@@ -48,7 +48,9 @@ sudo apt install cmake ninja-build qemu-system-riscv
 From the project root:
 
 ```shell
-cmake -S . -B build-x86_64  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=riscv64-elf-gcc -DCMAKE_CXX_COMPILER=riscv64-elf-g++ -G Ninja
+cmake -S . -B build-x86_64  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=riscv64-elf-gcc -DCMAKE_CXX_COMPILER=riscv64-elf-g++ -G Ninja #[deprecate]
+# You need to set the `-DCMAKE_C_COMPILER`(default `riscv64-elf-gcc`) parameter in the root directory `ExternalProject_Add` first
+cmake -S . -B build-x86_64 -G Ninja
 cmake --build build-x86_64 -v
 ```
 This generates in builddir:
@@ -67,7 +69,7 @@ qemu-system-riscv64 -nographic -smp 1 -machine virt -bios none -serial mon:stdio
 ```
 or run cmake target:
 ```shell
-cmake --build build-x86_64 -v -t run-[target]
+cmake --build build-x86_64/build-RVOS -v -t run-[target]
 ```
 Alternatively, target `debug`:
 
@@ -77,7 +79,7 @@ gdb [target name] -ex "target remote :1234" -ex "b _start" -ex "c"
 ```
 or run cmake target:
 ```shell
-cmake --build build-x86_64 -v -t dbg-[target]
+cmake --build build-x86_64/build-RVOS -v -t dbg-[target]
 ```
 
 ---
