@@ -12,4 +12,5 @@ target_link_options(${target} PRIVATE
     -Wl,-Map=${CMAKE_CURRENT_BINARY_DIR}/${target}.map
 )
 SetupCodeChecks(${target})
-
+RunInQEMU(${target})
+GenerateASMFile(${target} "-DCS")
