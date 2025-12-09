@@ -9,6 +9,7 @@ project(RVOS
     LANGUAGES CXX C ASM
 )
 include(CodeCheck)
+include(CustomTarget)
 find_package(Git)
 
 set(ldLinkPath ${CMAKE_CURRENT_LIST_DIR}/Startup CACHE PATH "Linker script directory")

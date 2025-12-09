@@ -15,3 +15,5 @@ target_link_options(${target} PRIVATE
 )
 
 SetupCodeChecks(${target})
+RunInQEMU(${target})
+GenerateASMFile(${target} "-DCS")
