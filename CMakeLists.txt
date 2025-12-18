@@ -1,23 +1,41 @@
 cmake_minimum_required(VERSION 3.20...3.27)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules")
-include(ToolsChainConf)
+project(multipleProjects)
 
-project("RVOS"
-VERSION "0.0.1"
-HOMEPAGE_URL "https://github.com/Baiyi27/RVOS.git"
-LANGUAGES CXX C ASM)
+include(ExternalProject)
 
-option(enableCTest "Enable Modules test" OFF)
+set(rootPath ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "project root directory")
+set(rootBuilddir ${CMAKE_BINARY_DIR} CACHE PATH "project root builddir")
+set(customModulesPath ${rootPath}/cmake/Modules CACHE PATH "custom modules directory")
 
-include(CodeCheck)
-find_package(Git)
+set(subProjectPath ${CMAKE_SOURCE_DIR}/lib)
+set(RVOS_builddir ${CMAKE_BINARY_DIR}/build-RVOS)
+set(INST_builddir ${CMAKE_BINARY_DIR}/build-INST)
 
-# Library
-add_subdirectory(lib)
-DefineCodeChecksTargets("fmt" "tidy")
+list(APPEND CMAKE_MODULE_PATH "${customModulesPath}")
+include(CustomTarget)
 
-get_filename_component(builddir ${CMAKE_BINARY_DIR} NAME)
-if(ClangFormat_FOUND OR  ClangTidy_FOUND)
-    message(">> Optional: build the target 'tidy' or 'fmt' ('cmake --build ${builddir} -t help' to know more) before building 'all' target")
-endif()
+ExternalProject_Add(
+    RVOS
+    SOURCE_DIR ${subProjectPath}/os
+    BINARY_DIR ${RVOS_builddir}
+    CMAKE_ARGS
+    -DCMAKE_C_COMPILER=riscv64-elf-gcc
+    -DCMAKE_CXX_COMPILER=riscv64-elf-g++
+    -DCMAKE_MODULE_PATH=${customModulesPath}
+    -DrootPath=${rootPath}
+    -DrootBuilddir=${rootBuilddir}
+    INSTALL_COMMAND ""
+)
+
+ExternalProject_Add(
+    INST
+    SOURCE_DIR ${subProjectPath}/ins
+    BINARY_DIR ${INST_builddir}
+    CMAKE_ARGS
+    -DCMAKE_CXX_COMPILER=g++
+    -DCMAKE_MODULE_PATH=${customModulesPath}
+    -DrootPath=${rootPath}
+    -DrootBuilddir=${rootBuilddir}
+    INSTALL_COMMAND ""
+)
