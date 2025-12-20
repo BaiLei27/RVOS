@@ -39,3 +39,5 @@ ExternalProject_Add(
     -DrootBuilddir=${rootBuilddir}
     INSTALL_COMMAND ""
 )
+
+MergeCompileCmdFiles(${RVOS_builddir} ${INST_builddir})
