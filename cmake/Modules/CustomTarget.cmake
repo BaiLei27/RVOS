@@ -41,3 +41,35 @@ function(GenerateASMFile target args)
         COMMENT "Generating '${target}.asm' file"
     )
 endfunction()
+
+function(MergeCompileCmdFiles)
+    set(subBuilddir ${ARGN})
+
+    if(NOT subBuilddir)
+        message(WARNING "MergeCompileCmdFiles: At least one 'compile_commands.json' path is required")
+        return()
+    endif()
+
+    set(jsonName compile_commands.json)
+    set(outputFile ${CMAKE_BINARY_DIR}/${jsonName})
+
+    foreach(dir IN LISTS subBuilddir)
+        set(f "${dir}/${jsonName}")
+        list(APPEND inputFiles ${f})
+
+        if(NOT IS_DIRECTORY ${dir})
+            message(WARNING "MergeCompileCmdFiles: Not a directory: ${dir}")
+        endif()
+    endforeach()
+
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+    add_custom_target(
+        merge_compile_commands
+        # ALL
+        COMMAND ${Python3_EXECUTABLE} ${rootPath}/scripts/python/mg_compile_cmd_files.py ${outputFile} ${inputFiles}
+        # DEPENDS RVOS INST
+        COMMENT "Merging '${jsonName}' files to '${outputFile}'"
+        VERBATIM
+    )
+endfunction()

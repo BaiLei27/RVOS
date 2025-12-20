@@ -33,9 +33,13 @@ ExternalProject_Add(
     SOURCE_DIR ${subProjectPath}/ins
     BINARY_DIR ${INST_builddir}
     CMAKE_ARGS
-    -DCMAKE_CXX_COMPILER=g++
+    -DCMAKE_CXX_COMPILER=clang++
     -DCMAKE_MODULE_PATH=${customModulesPath}
     -DrootPath=${rootPath}
     -DrootBuilddir=${rootBuilddir}
     INSTALL_COMMAND ""
 )
+
+MergeCompileCmdFiles(${RVOS_builddir} ${INST_builddir})
+add_dependencies(RVOS merge_compile_commands)
+add_dependencies(INST merge_compile_commands)
