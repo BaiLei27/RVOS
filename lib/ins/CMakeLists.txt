@@ -41,7 +41,6 @@ add_link_options(
 )
 
 target_sources(${PROJECT_NAME}_backEnd PRIVATE
-
     inc/ISA/Regs.hpp
     inc/Util/BiLookupTable.hpp
 
@@ -53,6 +52,9 @@ target_sources(${PROJECT_NAME}_backEnd PRIVATE
 
     inc/Core/InstType.hh
     src/Core/InstType.cc
+
+    inc/Core/InstTypeFactory.hh
+    src/Core/InstTypeFactory.cc
 )
 
 add_executable(
