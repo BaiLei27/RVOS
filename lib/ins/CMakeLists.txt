@@ -55,6 +55,9 @@ target_sources(${PROJECT_NAME}_backEnd PRIVATE
 
     inc/Core/InstTypeFactory.hh
     src/Core/InstTypeFactory.cc
+
+    inc/Core/Instruction.hh
+    src/Core/Instruction.cc
 )
 
 add_executable(
