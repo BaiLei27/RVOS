@@ -43,6 +43,7 @@ add_link_options(
 target_sources(${PROJECT_NAME}_backEnd PRIVATE
     inc/ISA/Regs.hpp
     inc/Util/BiLookupTable.hpp
+    inc/Log/Logger.hpp
 
     inc/Core/IBaseInstType.hh
     src/Core/IBaseInstType.cc
