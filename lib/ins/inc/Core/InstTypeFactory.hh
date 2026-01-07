@@ -1,8 +1,6 @@
 #pragma once
 
-#include <memory>
-#include "IBaseInstType.hh"
-#include "ISA/InstFormat.hh"
+#include "Core/IBaseInstType.hh"
 
 class InstTypeFactory {
 private:
@@ -19,6 +17,10 @@ private:
 
 public:
     static std::unique_ptr<IBaseInstType> CreateType(uint32_t inst, bool hasSetABI= false);
+    static std::unique_ptr<IBaseInstType> CreateType(std::vector<std::string> &instAssembly, bool hasSetABI= false);
 
 private:
+    template <typename T>
+    static std::unique_ptr<IBaseInstType> createHelper(T key, bool hasSetABI= false);
+    static std::optional<uint16_t> matchInstOpcode(std::string_view instName);
 };

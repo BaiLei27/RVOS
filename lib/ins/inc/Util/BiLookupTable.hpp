@@ -1,19 +1,20 @@
 #pragma once
 
+#include <cstdint>
+#include <string>
 #include <string_view>
 #include <unordered_map>
-#include <cstdint>
 #include <optional>
 #include <tuple>
 
 template <typename KeyT= uint16_t>
 class BiLookupTable { // Bidirectional lookup table for code2name and name2code
 public:
-    using nameAndXLEN_u= std::tuple<std::string_view, std::string_view>; // name, XLEN
-    using idxAndXLEN_u = std::tuple<KeyT, std::string_view>;
+    using nameAndInfo_u= std::tuple<std::string_view, std::string_view, std::string>; // name, XLEN, manual
+    using idxAndInfo_u = std::tuple<KeyT, std::string_view, std::string>;             // funct key, XLEN, manual
 
-    using intMapTup_u= std::unordered_map<KeyT, nameAndXLEN_u>;
-    using strMapTup_u= std::unordered_map<std::string_view, idxAndXLEN_u>;
+    using intMapTup_u= std::unordered_map<KeyT, nameAndInfo_u>;
+    using strMapTup_u= std::unordered_map<std::string_view, idxAndInfo_u>;
 
     BiLookupTable(const intMapTup_u &code2tuple,
                   const strMapTup_u &tuple2code)
@@ -30,13 +31,13 @@ public:
     BiLookupTable(BiLookupTable &&)                 = default;
     BiLookupTable &operator= (BiLookupTable &&)     = default;
 
-    std::optional<nameAndXLEN_u> Find(KeyT code) const noexcept
+    std::optional<nameAndInfo_u> Find(KeyT code) const noexcept
     {
         auto it= Code2Info_.find(code);
         return it != Code2Info_.end() ? std::make_optional(it->second) : std::nullopt;
     }
 
-    std::optional<idxAndXLEN_u> Find(std::string_view name) const noexcept
+    std::optional<idxAndInfo_u> Find(std::string_view name) const noexcept
     {
         auto it= Name2Info_.find(name);
         return it != Name2Info_.end() ? std::make_optional(it->second) : std::nullopt;

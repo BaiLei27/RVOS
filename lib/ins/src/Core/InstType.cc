@@ -12,11 +12,17 @@ RType::RType(uint32_t inst, InstFormat format, bool hasSetABI)
     init();
 }
 
-RType::RType(KeyT opcode, InstFormat format, bool hasSetABI)
-    : IBaseInstType(opcode, format, hasSetABI)
+// RType::RType(KeyT opcode, InstFormat format, bool hasSetABI)
+//     : IBaseInstType(opcode, format, hasSetABI)
+// {
+//     // FunctKey_     = Layout_.R.fct7 << 3 | Layout_.R.fct3;
+//     // instTable_= BuildTable();
+//     init();
+// }
+
+RType::RType(std::vector<std::string> instAssembly, InstFormat format, bool hasSetABI)
+    : IBaseInstType(std::move(instAssembly), format, hasSetABI)
 {
-    // FunctKey_     = Layout_.R.fct7 << 3 | Layout_.R.fct3;
-    // instTable_= BuildTable();
     init();
 }
 
@@ -31,14 +37,14 @@ void RType::Parse()
               << "rd: " << Layout_.R.rd << '\n';
 }
 
-const std::vector<std::string_view> &RType::Disassembly()
+const std::vector<std::string> &RType::Disassembly()
 {
     if(!InstTable_) {
         InstTable_= buildTable();
     }
 
     if(InstAssembly_.empty()) {
-        const auto &[instName, _]= LookupNameAndXLEN();
+        const auto &[instName, _1, _2]= LookupNameAndInfo();
         InstAssembly_.emplace_back(instName);
 
         if(HasSetABI_) {
@@ -55,7 +61,12 @@ const std::vector<std::string_view> &RType::Disassembly()
     return InstAssembly_;
 }
 
-void RType::Assembly() { }
+const InstLayout &RType::Assembly()
+{
+    // Layout_= 0x124;
+    std::cout << "Not supported temporarily\n";
+    return Layout_;
+}
 
 IBaseInstType::KeyT RType::calculateFunctKey()
 {
@@ -65,14 +76,36 @@ IBaseInstType::KeyT RType::calculateFunctKey()
 
 IBaseInstType::pTable_u RType::buildTable()
 {
-    static auto s_instTable= std::make_shared<const BiLookupTable<KeyT>>(
-        BiLookupTable<KeyT>::intMapTup_u {
-            { 0x00, { "add", "RV32I" } },
-    },
-        BiLookupTable<KeyT>::strMapTup_u {
-            { "add", { 0x00, "RV32I" } },
+    Opcode_= 0x33;
 
-        });
+    static auto s_instTable= [](const std::string &baseURL) -> pTable_u {
+        BiLookupTable<KeyT>::intMapTup_u code2info;
+        BiLookupTable<KeyT>::strMapTup_u name2info;
+        for(const auto &entry: G_INST_TABLE) {
+            auto functKey= std::get<0>(entry);
+            auto name    = std::get<2>(entry);
+            auto xlen    = std::get<3>(entry);
+
+            if(xlen.empty() || name.empty()) {
+                continue;
+            }
+
+            auto manualURL= baseURL + std::string(name); // temp string
+
+            // std::cout << "opcode: 0x" << std::hex << Opcode_ << '\n'
+            //           << "name: " << name << '\n'
+            //           << "xlen: " << xlen << '\n'
+            //           << "functKey: 0x" << functKey << '\n'
+            //           << "BaseURL: " << BaseURL_ << '\n';
+
+            code2info.emplace(functKey, std::make_tuple(name, xlen, manualURL));
+            name2info.emplace(name, std::make_tuple(functKey, xlen, manualURL));
+        }
+
+        return std::make_shared<const BiLookupTable<KeyT>>(
+            std::move(code2info),
+            std::move(name2info));
+    }(BaseURL_);
 
     return s_instTable;
 }
