@@ -3,7 +3,7 @@
 #include <array>
 #include <optional>
 #include <string>
-
+#include <cstdint>
 // Fixed-size, compile-time mapping of register index -> (name, ABI)
 namespace isa {
 

@@ -28,6 +28,12 @@ RType::RType(std::vector<std::string> instAssembly, InstFormat format, bool hasS
 
 void RType::Parse()
 {
+    InstBitsField_.emplace_back(Layout_.entity_ & 0x7F);
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.rd));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.fct3));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.rs1));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.rs2));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.fct7));
     std::cout << "opcode: 0x" << std::hex << GetInstOpcode() << '\n'
               << "Hexadecimal: 0x" << Layout_.entity_ << '\n'
               << "funct3: " << Layout_.R.fct3 << '\n'

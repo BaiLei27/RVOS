@@ -29,6 +29,18 @@ set_target_properties(${PROJECT_NAME}_backEnd PROPERTIES
     # OUTPUT_NAME "backEnd"
 )
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/res)
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/InstStyle.css
+    ${CMAKE_CURRENT_BINARY_DIR}/res/InstStyle.css
+    COPYONLY
+)
+
+target_compile_definitions(${PROJECT_NAME}_backEnd PUBLIC
+    CSS_FILE_PATH="${CMAKE_CURRENT_BINARY_DIR}/res/InstStyle.css"
+)
+
 add_compile_options(
     -fdiagnostics-color=always
     -ffunction-sections
@@ -64,6 +76,12 @@ target_sources(${PROJECT_NAME}_backEnd PRIVATE
 
     inc/Core/Instruction.hh
     src/Core/Instruction.cc
+
+    inc/Gui/InstFormatUI.hh
+    src/Gui/InstFormatUI.cc
+
+    inc/Gui/InstCommST.hh
+    src/Gui/InstCommST.cc
 
     src/Gui/RISCVInstructionWindow.cc
 )

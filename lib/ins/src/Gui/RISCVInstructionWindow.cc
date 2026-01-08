@@ -10,6 +10,7 @@
 #include "Core/InstTypeFactory.hh"
 #include "ISA/InstFormat.hh"
 #include "Core/Instruction.hh"
+#include "Gui/InstFormatUI.hh"
 
 class RISCVInstructionWindow : public Gtk::Window {
 public:
@@ -19,10 +20,20 @@ public:
     Gtk::TextView* InsTextView_ = nullptr;
     Instruction *pInst_ = nullptr;
     RISCVInstructionWindow();
+    InstFormatUI* rTypeUI_ = nullptr;
+    InstFormatUI* iTypeUI_ = nullptr;
+    InstFormatUI* sTypeUI_ = nullptr;
+    InstFormatUI* bTypeUI_ = nullptr;
+    InstFormatUI* uTypeUI_ = nullptr;
+    InstFormatUI* jTypeUI_ = nullptr;
 private:
+    void initInstFormatUI();
     void onInsButtonParseClicked();
     void showInsResult(Instruction& inst);
+    void updateDisplay(InstFormatUI& instUi,Instruction& inst);
     void showError(const std::string& message);
+    void loadCssFromFile(Gtk::Window& window);
+    void hideAllTypeUI();
 };
 
 RISCVInstructionWindow::RISCVInstructionWindow() {
@@ -48,10 +59,37 @@ RISCVInstructionWindow::RISCVInstructionWindow() {
     InsTextView_->set_hexpand(true);
     InsTextView_->set_editable(false);
     InsTextView_->set_cursor_visible(false);
+    loadCssFromFile(*this);
 
+    initInstFormatUI();
     set_child(*uiContainer_);
 }
 
+void RISCVInstructionWindow::hideAllTypeUI() {
+    rTypeUI_->hide();
+    iTypeUI_->hide();
+}
+void RISCVInstructionWindow::initInstFormatUI() {
+    rTypeUI_ = new InstFormatUI(createRTypeFormat());
+    uiContainer_->append(*rTypeUI_);
+    rTypeUI_->set_visible(false);
+    iTypeUI_ = new InstFormatUI(createITypeFormat());
+    uiContainer_->append(*iTypeUI_);
+    iTypeUI_->set_visible(false);
+    sTypeUI_ = new InstFormatUI(createSTypeFormat());
+    uiContainer_->append(*sTypeUI_);
+    sTypeUI_->set_visible(false);
+    bTypeUI_ = new InstFormatUI(createBTypeFormat());
+    uiContainer_->append(*bTypeUI_);
+    bTypeUI_->set_visible(false);
+    uTypeUI_ = new InstFormatUI(createUTypeFormat());
+    uiContainer_->append(*uTypeUI_);
+    uTypeUI_->set_visible(false);
+    jTypeUI_ = new InstFormatUI(createJTypeFormat());
+    uiContainer_->append(*jTypeUI_);
+    jTypeUI_->set_visible(false);
+
+}
 void RISCVInstructionWindow::onInsButtonParseClicked() {
     auto hexStr = InsEntry_->get_text();
     if (hexStr.empty()) {
@@ -95,16 +133,52 @@ void RISCVInstructionWindow::showInsResult(Instruction& inst) {
         std::cerr << "Error: TextView buffer is null." << std::endl;
         return;
     }
+    hideAllTypeUI();
+    InstFormatUI *currUi = nullptr;
     InstFormat fmt_ = inst.GetType().GetInstFormat();
-
+    switch (fmt_) {
+        case InstFormat::R:
+            rTypeUI_->show();
+            currUi = rTypeUI_;
+            break;
+        case InstFormat::I:
+            iTypeUI_->show();
+            currUi = iTypeUI_;
+            break;
+        case InstFormat::S:
+            sTypeUI_->show();
+            currUi = sTypeUI_;
+            break;
+        case InstFormat::B:
+            bTypeUI_->show();
+            currUi = bTypeUI_;
+            break;
+        case InstFormat::U:
+            uTypeUI_->show();
+            currUi = uTypeUI_;
+            break;
+        case InstFormat::J:
+            jTypeUI_->show();
+            currUi = jTypeUI_;
+            break;
+        default:
+            showError("err inst type!");
+            break;
+    }
     std::ostringstream oss;
     oss << "Hexadecimal   = 0x"<< std::hex << std::setfill('0') << std::setw(8) << static_cast<uint32_t>(inst) << "\n";
     oss << "Format          = "<< std::hex << inst.GetFormat() << '\n';
     oss << "Instruction set = " << inst.GetXLEN() << "\n";
     buffer->set_text(oss.str());
 
+    if(currUi) {
+        updateDisplay(*currUi, inst);
+    }
 
     uiContainer_->append(*InsTextView_);
+}
+void RISCVInstructionWindow::updateDisplay(InstFormatUI& instUi,Instruction& inst) {
+    instUi.updateDisplay(inst); 
 }
 
 void RISCVInstructionWindow::showError(const std::string& message) {
@@ -113,4 +187,30 @@ void RISCVInstructionWindow::showError(const std::string& message) {
         buffer->set_text("错误: " + message);
     }
     std::cerr << "Error: " << message << std::endl;
+}
+
+
+void RISCVInstructionWindow::loadCssFromFile(Gtk::Window& window) {
+    try {
+        auto cssProvider = Gtk::CssProvider::create();
+        // auto cssFile = Gio::File::create_for_path("res/InstStyle.css");
+        
+        auto cssFile = Gio::File::create_for_path(CSS_FILE_PATH);
+        cssProvider->load_from_file(cssFile);
+
+        auto display = Gdk::Display::get_default();
+        if (display) {
+            Gtk::StyleContext::add_provider_for_display(
+                display, cssProvider, 
+                GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+        }
+        
+        std::cout << "CSS loaded successfully from file!" << std::endl;
+    } catch (const Gio::ResourceError& ex) {
+        std::cerr << "Resource error: " << ex.what() << std::endl;
+    } catch (const Glib::Error& ex) {
+        std::cerr << "GLib error: " << ex.what() << std::endl;
+    } catch (const std::exception& ex) {
+        std::cerr << "Error: " << ex.what() << std::endl;
+    }
 }
