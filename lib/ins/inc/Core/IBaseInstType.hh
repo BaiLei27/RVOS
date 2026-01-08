@@ -70,7 +70,9 @@ public:
 protected:
     virtual pTable_u buildTable()   = 0;
     virtual KeyT calculateFunctKey()= 0;
+    virtual void mnemonicHelper() { };
     void init();
+    void appendOperands(std::initializer_list<std::string_view> regs);
 
 public:
 };

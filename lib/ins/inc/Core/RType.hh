@@ -26,6 +26,7 @@ public:
 
 private:
     KeyT calculateFunctKey() override;
+    void mnemonicHelper() override;
     [[nodiscard]] pTable_u buildTable() override;
 };
 

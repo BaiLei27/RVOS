@@ -1,7 +1,7 @@
 
 #include <iostream>
 
-#include "Core/InstType.hh"
+#include "Core/RType.hh"
 #include "ISA/Regs.hpp"
 
 // #include "Log/Logger.hpp"
@@ -37,6 +37,15 @@ void RType::Parse()
               << "rd: " << Layout_.R.rd << '\n';
 }
 
+void RType::mnemonicHelper()
+{
+    auto rd = isa::LOOKUP_REG_NAME(Layout_.R.rd, HasSetABI_); // actually reg mnemonic only 5b (max: 31),never overflow
+    auto rs1= isa::LOOKUP_REG_NAME(Layout_.R.rs1, HasSetABI_);
+    auto rs2= isa::LOOKUP_REG_NAME(Layout_.R.rs2, HasSetABI_);
+
+    appendOperands({ " ", rd, ", ", rs1, ", ", rs2 });
+}
+
 const std::vector<std::string> &RType::Disassembly()
 {
     if(!InstTable_) {
@@ -46,14 +55,7 @@ const std::vector<std::string> &RType::Disassembly()
     if(InstAssembly_.empty()) {
         const auto &[instName, _1, _2]= LookupNameAndInfo();
         InstAssembly_.emplace_back(instName);
-
-        auto rd = isa::LOOKUP_REG_NAME(Layout_.R.rd, HasSetABI_); // actually reg mnemonic only 5b (max: 31),never overflow
-        auto rs1= isa::LOOKUP_REG_NAME(Layout_.R.rs1, HasSetABI_);
-        auto rs2= isa::LOOKUP_REG_NAME(Layout_.R.rs2, HasSetABI_);
-
-        InstAssembly_.emplace_back(rd);
-        InstAssembly_.emplace_back(rs1);
-        InstAssembly_.emplace_back(rs2);
+        mnemonicHelper();
     }
 
     return InstAssembly_;
@@ -73,9 +75,7 @@ const InstLayout &RType::Assembly()
         Layout_.R.rs2= *isa::LOOKUP_REG_IDX(InstAssembly_.at(3));
     }
 
-    InstAssembly_.at(1)= isa::LOOKUP_REG_NAME(Layout_.R.rd, HasSetABI_);
-    InstAssembly_.at(2)= isa::LOOKUP_REG_NAME(Layout_.R.rs1, HasSetABI_);
-    InstAssembly_.at(3)= isa::LOOKUP_REG_NAME(Layout_.R.rs2, HasSetABI_);
+    mnemonicHelper();
 
     return Layout_;
 }

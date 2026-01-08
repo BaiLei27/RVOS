@@ -16,7 +16,7 @@ int main()
     std::unique_ptr<IBaseInstType> inst1= make_unique<RType>(add, InstFormat::R, true);
     inst1->Disassembly();
     inst1->Parse();
-#elif 01
+#elif 00
 
     auto opt= isa::LOOKUP_REG_NAME(50);
     cout << opt << '\n';
@@ -45,10 +45,10 @@ int main()
     test("S0");    // 23
     test("s0/fp"); // 23
     test("foo");   // not found
-    test("0x88");   // 8
+    test("0x88");  // 8
     test("8");     // 8
 
-#elif 00
+#elif 01
     std::string sub= { "sub x3, ra, 0x8" }; // 0x408081b3
 
     Instruction a(sub, false);
@@ -63,7 +63,7 @@ int main()
          << a.GetManual() << '\n';
 
     a.ShowInfo();
-#elif 00
+#elif 01
     vector<Instruction> v;
     v.emplace_back(add, true);
     // v.emplace_back(0x00310093); // addi x1, x2, 3
