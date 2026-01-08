@@ -34,6 +34,7 @@ public:
     [[nodiscard]] std::string_view GetFormat() const noexcept;
 
     bool Decode();
+    void ShowInfo() const;
 
 private:
     // static std::vector<std::string> handleAssembly(std::string &assembly);

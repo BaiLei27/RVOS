@@ -27,7 +27,7 @@ Instruction::Instruction(std::string &assembly, bool hasSetABI)
     std::vector<std::string> parts;
     while(tmp >> parts.emplace_back()) // get inst name;
         ;
-    parts.pop_back();
+    // parts.pop_back();
 
     Type_= InstTypeFactory::CreateType(parts, hasSetABI);
 
@@ -101,40 +101,35 @@ std::string_view Instruction::GetFormat() const noexcept
 
 bool Instruction::Decode()
 {
-    // std::cout << "BitField: " << BitField_ << '\n';
     if(Type_) {
         if(BitField_.none()) {
             std::bitset<32> tmp(Type_->Assembly());
             BitField_= std::move(tmp);
 
         } else {
-
-            const auto &v= Type_->Disassembly();
-
-            // for(char comma[] { '\0', ' ', '\0' }; const auto &i: v) {
-            //     Disassembly_ << comma << i, comma[0]= ',';
-            //     std::cout << "Disassembly: " << Disassembly_.str() << '\n';
-            // }
-
-            std::string sep;
-            for(const auto &e: v) {
-                Disassembly_ << sep << e;
-                sep= (sep.empty() ? " " : ", ");
-            }
-
-            std::cout << "Assembly: " << Disassembly_.str() << '\n';
-            Type_->Parse();
-
-            std::cout << "Format: " << Format_ << '\n'
-                      << "Arch: " << XLEN_ << '\n'
-                      << "Manual: " << Manual_ << '\n';
+            Type_->Disassembly();
         }
-        std::cout << "BitField: " << BitField_ << '\n';
 
+        const auto &v= Type_->GetInstAssembly();
+        std::string sep;
+        for(const auto &e: v) {
+            Disassembly_ << sep << e;
+            sep= (sep.empty() ? " " : ", ");
+        }
         return true;
     }
 
     std::cout << "unimp instruction: " << BitField_.to_ulong() << '\n';
 
     return false;
+}
+
+void Instruction::ShowInfo() const
+{
+    std::cout << "BitField: " << BitField_ << '\n'
+              << "Assembly: " << Disassembly_.str() << '\n';
+    Type_->Parse();
+    std::cout << "Format: " << Format_ << '\n'
+              << "Arch: " << XLEN_ << '\n'
+              << "Manual: " << Manual_ << '\n';
 }
