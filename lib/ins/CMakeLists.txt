@@ -42,6 +42,8 @@ add_link_options(
 
 target_sources(${PROJECT_NAME}_backEnd PRIVATE
     inc/ISA/Regs.hpp
+    src/ISA/Regs.cc
+
     inc/Util/BiLookupTable.hpp
     inc/Log/Logger.hpp
 
