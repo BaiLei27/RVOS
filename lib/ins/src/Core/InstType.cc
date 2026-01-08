@@ -47,15 +47,13 @@ const std::vector<std::string> &RType::Disassembly()
         const auto &[instName, _1, _2]= LookupNameAndInfo();
         InstAssembly_.emplace_back(instName);
 
-        if(HasSetABI_) {
-            InstAssembly_.emplace_back(G_INDEX_REGS_ABI[Layout_.R.rd].second);
-            InstAssembly_.emplace_back(G_INDEX_REGS_ABI[Layout_.R.rs1].second);
-            InstAssembly_.emplace_back(G_INDEX_REGS_ABI[Layout_.R.rs2].second);
-        } else {
-            InstAssembly_.emplace_back(G_INDEX_REGS_ABI[Layout_.R.rd].first);
-            InstAssembly_.emplace_back(G_INDEX_REGS_ABI[Layout_.R.rs1].first);
-            InstAssembly_.emplace_back(G_INDEX_REGS_ABI[Layout_.R.rs2].first);
-        }
+        auto rd = isa::LOOKUP_REG_NAME(Layout_.R.rd, HasSetABI_); // actually reg mnemonic only 5b (max: 31),never overflow
+        auto rs1= isa::LOOKUP_REG_NAME(Layout_.R.rs1, HasSetABI_);
+        auto rs2= isa::LOOKUP_REG_NAME(Layout_.R.rs2, HasSetABI_);
+
+        InstAssembly_.emplace_back(rd);
+        InstAssembly_.emplace_back(rs1);
+        InstAssembly_.emplace_back(rs2);
     }
 
     return InstAssembly_;
@@ -63,8 +61,22 @@ const std::vector<std::string> &RType::Disassembly()
 
 const InstLayout &RType::Assembly()
 {
-    // Layout_= 0x124;
-    std::cout << "Not supported temporarily\n";
+    const auto &[functKey, _1, _2]= LookupIdxAndInfo();
+
+    Layout_.R.opc = Opcode_;
+    Layout_.R.fct7= functKey >> 3;
+    Layout_.R.fct3= functKey & 7;
+
+    if(!InstAssembly_.empty()) {
+        Layout_.R.rd = *isa::LOOKUP_REG_IDX(InstAssembly_.at(1));
+        Layout_.R.rs1= *isa::LOOKUP_REG_IDX(InstAssembly_.at(2));
+        Layout_.R.rs2= *isa::LOOKUP_REG_IDX(InstAssembly_.at(3));
+    }
+
+    InstAssembly_.at(1)= isa::LOOKUP_REG_NAME(Layout_.R.rd, HasSetABI_);
+    InstAssembly_.at(2)= isa::LOOKUP_REG_NAME(Layout_.R.rs1, HasSetABI_);
+    InstAssembly_.at(3)= isa::LOOKUP_REG_NAME(Layout_.R.rs2, HasSetABI_);
+
     return Layout_;
 }
 
