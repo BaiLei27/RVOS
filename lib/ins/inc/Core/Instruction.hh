@@ -38,6 +38,7 @@ public:
 
 private:
     // static std::vector<std::string> handleAssembly(std::string &assembly);
+    void resetStream();
 };
 
 // Date:25/12/22/14:56

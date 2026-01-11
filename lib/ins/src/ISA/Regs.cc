@@ -28,25 +28,21 @@ std::optional<uint16_t> LOOKUP_REG_IDX(std::string &target)
 
     // std::cout << target << "\n";
     target[0]= static_cast<char>(std::tolower(target[0])); // only lower first char
-
+#if 0
     if(target.starts_with('x')) { // deal x*
-#if 1
+
         const auto *pIt= std::lower_bound( // NOLINT
             G_INDEX_REGS_ABI.begin(),
             G_INDEX_REGS_ABI.end(),
             target,
             REG_ENTRY_LESS);
-#else
-        const auto *pIt= std::ranges::lower_bound(
-            G_INDEX_REGS_ABI,
-            target,
-            {}, // default 'ranges::less< >{}'
-            &strPair_u::first);
-#endif
         if(pIt != G_INDEX_REGS_ABI.end()) { //
             return std::make_optional<uint16_t>(std::distance(G_INDEX_REGS_ABI.begin(), pIt));
         }
-
+#else
+    if(target.starts_with('x') && CheckIfDigit(target.substr(1), std::isdigit)) {
+        return Str2Int(target.substr(1), 10);
+#endif
     } else if(CheckIfDigit(target, std::isdigit)) {
         return Str2Int(target, 10);
 
@@ -60,7 +56,7 @@ std::optional<uint16_t> LOOKUP_REG_IDX(std::string &target)
 
         static const std::vector<size_t> S_SORTED_BY_NAME_SECOND= [] {
             std::vector<size_t> idx(G_REG_NUMBER);
-#if __cplusplus >= 202302L
+#if __cplusplus >= 202100L
             std::ranges::iota(idx, 0);
 #else
             std::iota(idx.begin(), idx.end(), 0);
@@ -69,15 +65,13 @@ std::optional<uint16_t> LOOKUP_REG_IDX(std::string &target)
             return idx;
         }();
 
-        {
-            auto it= std::ranges::lower_bound(
-                S_SORTED_BY_NAME_SECOND,
-                target,
-                std::ranges::less {},
-                [](size_t i) { return G_INDEX_REGS_ABI[i].second; });
-            if(it != S_SORTED_BY_NAME_SECOND.end() && G_INDEX_REGS_ABI[*it].second == target) {
-                return *it;
-            }
+        auto it= std::ranges::lower_bound(
+            S_SORTED_BY_NAME_SECOND,
+            target,
+            std::ranges::less {},
+            [](size_t i) { return G_INDEX_REGS_ABI[i].second; });
+        if(it != S_SORTED_BY_NAME_SECOND.end() && G_INDEX_REGS_ABI[*it].second == target) {
+            return std::make_optional<uint16_t>(*it);
         }
     }
     return std::nullopt;

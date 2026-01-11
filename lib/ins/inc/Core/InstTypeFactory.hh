@@ -7,6 +7,8 @@ private:
     const static inline std::unordered_map<uint16_t, InstFormat> G_Opcode2Format= {
         // Opcode -> Instruction format mapping table (RISC-V standard opcode)
         { 0x33, InstFormat::R }, // R-type: add/sub/sll/slt etc.
+        { 0x3b, InstFormat::R },
+        { 0x7b, InstFormat::R },
         { 0x13, InstFormat::I }, // I-type: lw/addi etc.
         { 0x23, InstFormat::S }, // S-type: sw/sb etc.
         { 0x63, InstFormat::B }, // B-type: beq/bne etc.

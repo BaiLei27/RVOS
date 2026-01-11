@@ -1,0 +1,79 @@
+.binary-bit {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-family: monospace;
+    font-weight: bold;
+    margin: 1px;
+    padding: 0 2px;
+}
+
+.binary-bit.highlighted {
+    background-color: #4a86e8;
+    color: white;
+    border: 1px solid #2a5298;
+}
+
+.binary-bit.highlighted-in-mouse {
+    background-color: #b9e84aff;
+    color: white;
+    border: 1px solid #61982aff;
+}
+
+.bit-field-container {
+    padding: 1px;
+    border-radius: 3px;
+}
+
+.field-label {
+    font-size: 0.85em;
+    color: #555;
+    margin-top: 3px;
+}
+
+.instruction-container { 
+    padding: 0 3px;
+    border-radius: 4px;
+}
+
+.instruction-label {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: monospace;
+    font-weight: bold;
+    margin: 1px;
+    padding: 0 3px;
+    color: #10151aff;
+}
+.instruction-label.highlighted {
+    background-color: #4a86e8;
+    color: white;
+    border: 1px solid #2a5298;
+}
+.instruction-label.highlighted-in-mouse {
+    background-color: #b9e84aff;
+    color: white;
+    border: 1px solid #61982aff;
+}
+
+.register-label {
+    background-color: #f0f0f0;
+    border: 1px solid  #ccc;
+    border-radius: 4px;
+    font-family: monospace;
+    font-weight: bold;
+    margin: 1px;
+    padding: 0 3px;
+    color: #10151aff;
+}
+.register-label.highlighted {
+    background-color: #4a86e8;
+    color: white;
+    border: 1px solid #2a5298;
+}
+.register-label.highlighted-in-mouse {
+    background-color: #b9e84aff;
+    color: white;
+    border: 1px solid #61982aff;
+}

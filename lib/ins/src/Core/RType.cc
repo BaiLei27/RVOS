@@ -1,7 +1,7 @@
 
 #include <iostream>
 
-#include "Core/InstType.hh"
+#include "Core/RType.hh"
 #include "ISA/Regs.hpp"
 
 // #include "Log/Logger.hpp"
@@ -28,6 +28,12 @@ RType::RType(std::vector<std::string> instAssembly, InstFormat format, bool hasS
 
 void RType::Parse()
 {
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.opc));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.rd));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.fct3));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.rs1));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.rs2));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.fct7));
     std::cout << "opcode: 0x" << std::hex << GetInstOpcode() << '\n'
               << "Hexadecimal: 0x" << Layout_.entity_ << '\n'
               << "funct3: " << Layout_.R.fct3 << '\n'
@@ -35,6 +41,15 @@ void RType::Parse()
               << "rs1: " << Layout_.R.rs1 << '\n'
               << "rs2: " << Layout_.R.rs2 << '\n'
               << "rd: " << Layout_.R.rd << '\n';
+}
+
+void RType::mnemonicHelper()
+{
+    auto rd = isa::LOOKUP_REG_NAME(Layout_.R.rd, HasSetABI_); // actually reg mnemonic only 5b (max: 31),never overflow
+    auto rs1= isa::LOOKUP_REG_NAME(Layout_.R.rs1, HasSetABI_);
+    auto rs2= isa::LOOKUP_REG_NAME(Layout_.R.rs2, HasSetABI_);
+
+    appendOperands({ " ", rd, ", ", rs1, ", ", rs2 });
 }
 
 const std::vector<std::string> &RType::Disassembly()
@@ -46,14 +61,7 @@ const std::vector<std::string> &RType::Disassembly()
     if(InstAssembly_.empty()) {
         const auto &[instName, _1, _2]= LookupNameAndInfo();
         InstAssembly_.emplace_back(instName);
-
-        auto rd = isa::LOOKUP_REG_NAME(Layout_.R.rd, HasSetABI_); // actually reg mnemonic only 5b (max: 31),never overflow
-        auto rs1= isa::LOOKUP_REG_NAME(Layout_.R.rs1, HasSetABI_);
-        auto rs2= isa::LOOKUP_REG_NAME(Layout_.R.rs2, HasSetABI_);
-
-        InstAssembly_.emplace_back(rd);
-        InstAssembly_.emplace_back(rs1);
-        InstAssembly_.emplace_back(rs2);
+        mnemonicHelper();
     }
 
     return InstAssembly_;
@@ -73,9 +81,7 @@ const InstLayout &RType::Assembly()
         Layout_.R.rs2= *isa::LOOKUP_REG_IDX(InstAssembly_.at(3));
     }
 
-    InstAssembly_.at(1)= isa::LOOKUP_REG_NAME(Layout_.R.rd, HasSetABI_);
-    InstAssembly_.at(2)= isa::LOOKUP_REG_NAME(Layout_.R.rs1, HasSetABI_);
-    InstAssembly_.at(3)= isa::LOOKUP_REG_NAME(Layout_.R.rs2, HasSetABI_);
+    mnemonicHelper();
 
     return Layout_;
 }
@@ -83,12 +89,13 @@ const InstLayout &RType::Assembly()
 IBaseInstType::KeyT RType::calculateFunctKey()
 {
     FunctKey_= Layout_.R.fct7 << 3 | Layout_.R.fct3;
+    std::cout << "FunctKey: 0x" << std::hex << FunctKey_ << '\n';
     return FunctKey_;
 }
 
 IBaseInstType::pTable_u RType::buildTable()
 {
-    Opcode_= 0x33;
+    Opcode_= Layout_.entity_ & 0x7F;
 
     static auto s_instTable= [](const std::string &baseURL) -> pTable_u {
         BiLookupTable<KeyT>::intMapTup_u code2info;

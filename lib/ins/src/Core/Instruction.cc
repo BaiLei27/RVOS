@@ -105,16 +105,21 @@ bool Instruction::Decode()
         if(BitField_.none()) {
             std::bitset<32> tmp(Type_->Assembly());
             BitField_= std::move(tmp);
+            resetStream();
 
         } else {
             Type_->Disassembly();
         }
 
+        Type_->Parse();
         const auto &v= Type_->GetInstAssembly();
         std::string sep;
         for(const auto &e: v) {
-            Disassembly_ << sep << e;
-            sep= (sep.empty() ? " " : ", ");
+            // Disassembly_ << sep << e;
+            // std::cout << e << '\n';
+            Disassembly_ << e;
+            // std::cout << Disassembly_.str() << '\n';
+            // sep= (sep.empty() ? " " : ", ");
         }
         return true;
     }
@@ -132,4 +137,12 @@ void Instruction::ShowInfo() const
     std::cout << "Format: " << Format_ << '\n'
               << "Arch: " << XLEN_ << '\n'
               << "Manual: " << Manual_ << '\n';
+}
+
+void Instruction::resetStream()
+{
+    Disassembly_.str("");
+    Disassembly_.clear();
+    // Disassembly_.seekg(0);
+    // Disassembly_.seekp(0);
 }

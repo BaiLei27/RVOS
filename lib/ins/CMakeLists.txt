@@ -1,11 +1,14 @@
-cmake_minimum_required(VERSION 3.20...3.27)
+cmake_minimum_required(VERSION 3.25...3.27)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTKMM REQUIRED gtkmm-4.0)
 
 project(INST
     VERSION "0.0.1"
@@ -24,6 +27,18 @@ set_target_properties(${PROJECT_NAME}_backEnd PROPERTIES
     SOVERSION ${PROJECT_VERSION_MAJOR}
 
     # OUTPUT_NAME "backEnd"
+)
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/res)
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/InstStyle.css
+    ${CMAKE_CURRENT_BINARY_DIR}/res/InstStyle.css
+    COPYONLY
+)
+
+target_compile_definitions(${PROJECT_NAME}_backEnd PUBLIC
+    CSS_FILE_PATH="${CMAKE_CURRENT_BINARY_DIR}/res/InstStyle.css"
 )
 
 add_compile_options(
@@ -53,29 +68,40 @@ target_sources(${PROJECT_NAME}_backEnd PRIVATE
     inc/ISA/InstFormat.hh
     src/ISA/InstFormat.cc
 
-    inc/Core/InstType.hh
-    src/Core/InstType.cc
+    inc/Core/RType.hh
+    src/Core/RType.cc
 
     inc/Core/InstTypeFactory.hh
     src/Core/InstTypeFactory.cc
 
     inc/Core/Instruction.hh
     src/Core/Instruction.cc
+
+    inc/Gui/InstFormatUI.hh
+    src/Gui/InstFormatUI.cc
+
+    inc/Gui/InstCommST.hh
+    src/Gui/InstCommST.cc
+
+    src/Gui/RISCVInstructionWindow.cc
 )
 
 add_executable(
     ${PROJECT_NAME}
-    tests/INST.cc
+    # tests/INST.cc
+    src/Gui/Main.cc
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES
     SUFFIX ".exe"
 )
 include_directories(
     inc
+    ${GTKMM_INCLUDE_DIRS}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${PROJECT_NAME}_backEnd
+    PRIVATE ${GTKMM_LIBRARIES}
 )
 
 SetupCodeChecks(${PROJECT_NAME}_backEnd ${PROJECT_NAME})

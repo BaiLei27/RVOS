@@ -1,5 +1,6 @@
 
 #include "Core/IBaseInstType.hh"
+#include <iostream>
 
 // IBaseInstType::IBaseInstType(uint16_t opcode, bool hasSetABI)
 //     : Opcode_(opcode), HasSetABI_(hasSetABI) { }
@@ -22,6 +23,8 @@ IBaseInstType::IBaseInstType(std::vector<std::string> instAssembly,
 const InstLayout &IBaseInstType::GetInstLayout() const noexcept { return Layout_; }
 
 const std::vector<std::string> &IBaseInstType::GetInstAssembly() const noexcept { return InstAssembly_; }
+
+const std::vector<uint32_t> &IBaseInstType::GetInstBitsField() const noexcept { return InstBitsField_; }
 
 uint16_t IBaseInstType::GetInstOpcode() const noexcept { return Opcode_; }
 
@@ -61,6 +64,37 @@ BiLookupTable<IBaseInstType::KeyT>::idxAndInfo_u IBaseInstType::LookupIdxAndInfo
     }
 
     return { FunctKey_, "UNDEF", "Not available" };
+}
+
+void IBaseInstType::appendOperands(std::initializer_list<std::string_view> regMnemonic)
+{
+    // for(const auto &r: regMnemonic) {
+    //     InstAssembly_.emplace_back(r);
+    // }
+
+    // for(const auto *pIt= regMnemonic.begin(); pIt != regMnemonic.end(); ++pIt) { // NOLINT
+    //     InstAssembly_.emplace_back(*pIt);
+    //     if(std::next(pIt) != regMnemonic.end()) {
+    //         InstAssembly_.emplace_back(", ");
+    //     }
+    // }
+    size_t writeIdx= 1;
+
+    for(const auto &r: regMnemonic) {
+        if(writeIdx >= InstAssembly_.size()) {
+            InstAssembly_.emplace_back(r);
+        } else {
+            InstAssembly_[writeIdx]= r;
+        }
+        ++writeIdx;
+    }
+    // for(auto &e: InstAssembly_) {
+    //     std::cout << e << ' ';
+    // }
+    // std::cout << '\n';
+    if(InstAssembly_.size() > writeIdx) {
+        InstAssembly_.resize(writeIdx);
+    }
 }
 
 template <std::size_t N>
