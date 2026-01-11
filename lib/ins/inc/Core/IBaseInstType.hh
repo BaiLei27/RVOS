@@ -18,6 +18,7 @@ protected:
     std::optional<BiLookupTable<KeyT>::idxAndInfo_u> FunctOpcAndXlenCache_;
     std::optional<BiLookupTable<KeyT>::nameAndInfo_u> NameAndXlenCache_;
     std::vector<std::string> InstAssembly_;
+    std::vector<uint32_t> InstBitsField_;
     std::string BaseURL_ { R"(https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/)" };
     InstFormat Format_ { InstFormat::UNKOWN };
     InstLayout Layout_;
@@ -50,6 +51,7 @@ public:
 public:
     const InstLayout &GetInstLayout() const noexcept;
     const std::vector<std::string> &GetInstAssembly() const noexcept;
+    const std::vector<uint32_t> &GetInstBitsField() const noexcept;
     [[nodiscard]] uint16_t GetInstOpcode() const noexcept;
     [[nodiscard]] KeyT GetInstFunctKey() const noexcept;
     [[nodiscard]] InstFormat GetInstFormat() const noexcept;
