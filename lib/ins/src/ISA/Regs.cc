@@ -60,8 +60,7 @@ std::optional<uint16_t> LOOKUP_REG_IDX(std::string &target)
 
         static const std::vector<size_t> S_SORTED_BY_NAME_SECOND= [] {
             std::vector<size_t> idx(G_REG_NUMBER);
-#if (__GNUC__ >= 13) || (__GNUC__ == 12 && __GNUC_MINOR__ >= 99)
-
+#if __cplusplus >= 202302L
             std::ranges::iota(idx, 0);
 #else
             std::iota(idx.begin(), idx.end(), 0);
