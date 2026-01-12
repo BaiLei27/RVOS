@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.20...3.27)
+cmake_minimum_required(VERSION 3.25...3.27)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
@@ -53,8 +53,8 @@ target_sources(${PROJECT_NAME}_backEnd PRIVATE
     inc/ISA/InstFormat.hh
     src/ISA/InstFormat.cc
 
-    inc/Core/InstType.hh
-    src/Core/InstType.cc
+    inc/Core/RType.hh
+    src/Core/RType.cc
 
     inc/Core/InstTypeFactory.hh
     src/Core/InstTypeFactory.cc

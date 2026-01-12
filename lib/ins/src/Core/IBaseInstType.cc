@@ -1,5 +1,6 @@
 
 #include "Core/IBaseInstType.hh"
+// #include <iostream>
 
 // IBaseInstType::IBaseInstType(uint16_t opcode, bool hasSetABI)
 //     : Opcode_(opcode), HasSetABI_(hasSetABI) { }
@@ -32,6 +33,8 @@ InstFormat IBaseInstType::GetInstFormat() const noexcept { return Format_; }
 // std::string_view IBaseInstType::GetInstDisassembly() const { return InstDisassembly_; }
 void IBaseInstType::SetInstAssembly(std::vector<std::string> instAssembly) { InstAssembly_= std::move(instAssembly); }
 
+void IBaseInstType::SetFormat(InstFormat format) noexcept { Format_= format; }
+
 void IBaseInstType::init()
 {
     InstTable_= buildTable();
@@ -46,21 +49,47 @@ void IBaseInstType::init()
     }
 }
 
-BiLookupTable<IBaseInstType::KeyT>::nameAndInfo_u IBaseInstType::LookupNameAndInfo()
+BiLookupTable<IBaseInstType::KeyT>::NameInfo IBaseInstType::LookupNameAndInfo()
 {
     if(NameAndXlenCache_) {
         return *NameAndXlenCache_;
     }
-    return { "unimp", "UNDEF", "Not available" };
+    return { .manual_= "inst Not available", .XLEN_= "INST UNDEF", .name_= "inst unimp" };
 }
 
-BiLookupTable<IBaseInstType::KeyT>::idxAndInfo_u IBaseInstType::LookupIdxAndInfo()
+BiLookupTable<IBaseInstType::KeyT>::IndexInfo IBaseInstType::LookupIdxAndInfo()
 {
     if(FunctOpcAndXlenCache_) {
         return *FunctOpcAndXlenCache_;
     }
 
-    return { FunctKey_, "UNDEF", "Not available" };
+    return { .manual_= "inst Not available", .XLEN_= "INST UNDEF", .funct_= FunctKey_, .opcode_= Opcode_ };
+}
+
+void IBaseInstType::appendOperands(std::initializer_list<std::string_view> regMnemonic)
+{
+
+    // for(const auto *pIt= regMnemonic.begin(); pIt != regMnemonic.end(); ++pIt) { // NOLINT
+    //     InstAssembly_.emplace_back(*pIt);
+    //     if(std::next(pIt) != regMnemonic.end()) {
+    //         InstAssembly_.emplace_back(", ");
+    //     }
+    // }
+
+    size_t writeIdx= 1;
+
+    for(const auto &r: regMnemonic) {
+        if(writeIdx >= InstAssembly_.size()) {
+            InstAssembly_.emplace_back(r);
+        } else {
+            InstAssembly_[writeIdx]= r;
+        }
+        ++writeIdx;
+    }
+
+    if(InstAssembly_.size() > writeIdx) {
+        InstAssembly_.resize(writeIdx);
+    }
 }
 
 template <std::size_t N>
