@@ -10,7 +10,7 @@ Instruction::Instruction(uint32_t inst, bool hasSetABI)
       BitField_(inst)
 {
     if(Type_) {
-        const auto &[_1, XLEN, MAN_URL]= Type_->LookupNameAndInfo();
+        const auto &[MAN_URL, XLEN, _1]= Type_->LookupNameAndInfo();
 
         XLEN_  = XLEN;
         Manual_= MAN_URL;
@@ -32,11 +32,10 @@ Instruction::Instruction(std::string &assembly, bool hasSetABI)
     Type_= InstTypeFactory::CreateType(parts, hasSetABI);
 
     if(Type_) {
-        const auto &[_1, XLEN, MAN_URL]= Type_->LookupIdxAndInfo();
+        const auto &[MAN_URL, XLEN, _1, opc]= Type_->LookupIdxAndInfo();
 
         // std::cout << "XLEN: " << XLEN << '\n'
         //           << "MAN_URL: " << MAN_URL << '\n';
-
         XLEN_  = XLEN;
         Manual_= MAN_URL;
         Format_= GetFormat();
@@ -105,21 +104,24 @@ bool Instruction::Decode()
         if(BitField_.none()) {
             std::bitset<32> tmp(Type_->Assembly());
             BitField_= std::move(tmp);
+            resetStream();
 
         } else {
             Type_->Disassembly();
         }
 
+        Type_->Parse();
+
         const auto &v= Type_->GetInstAssembly();
-        std::string sep;
         for(const auto &e: v) {
-            Disassembly_ << sep << e;
-            sep= (sep.empty() ? " " : ", ");
+            Disassembly_ << e;
+            // std::cout << Disassembly_.str() << '\n';
         }
+
         return true;
     }
 
-    std::cout << "unimp instruction: " << BitField_.to_ulong() << '\n';
+    std::cout << "unimp instruction: 0x" << std::hex << BitField_.to_ulong() << '\n';
 
     return false;
 }
@@ -128,8 +130,15 @@ void Instruction::ShowInfo() const
 {
     std::cout << "BitField: " << BitField_ << '\n'
               << "Assembly: " << Disassembly_.str() << '\n';
-    Type_->Parse();
     std::cout << "Format: " << Format_ << '\n'
               << "Arch: " << XLEN_ << '\n'
               << "Manual: " << Manual_ << '\n';
+}
+
+void Instruction::resetStream()
+{
+    Disassembly_.str("");
+    Disassembly_.clear();
+    // Disassembly_.seekg(0);
+    // Disassembly_.seekp(0);
 }

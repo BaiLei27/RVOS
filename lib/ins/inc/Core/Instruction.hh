@@ -24,6 +24,7 @@ public:
     explicit operator std::string() const;
     explicit operator uint32_t() const;
 
+public:
     const IBaseInstType *GetTypePtr() const;
     const IBaseInstType &GetType() const;
     const std::bitset<32> &GetBitField() const;
@@ -38,6 +39,7 @@ public:
 
 private:
     // static std::vector<std::string> handleAssembly(std::string &assembly);
+    void resetStream();
 };
 
 // Date:25/12/22/14:56

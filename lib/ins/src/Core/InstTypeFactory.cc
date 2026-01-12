@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "Core/InstTypeFactory.hh"
-#include "Core/InstType.hh"
+#include "Core/RType.hh"
 
 std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(uint32_t inst, bool hasSetABI)
 {
@@ -62,8 +62,8 @@ std::unique_ptr<IBaseInstType> InstTypeFactory::createHelper(T key, bool hasSetA
 std::optional<uint16_t> InstTypeFactory::matchInstOpcode(std::string_view instName)
 {
     for(const auto &entry: RType::G_INST_TABLE) {
-        if(std::get<2>(entry) == instName) {
-            return std::make_optional(std::get<1>(entry)); // get opcode
+        if(entry.name_ == instName) {
+            return std::make_optional(entry.opcode_); // get opcode
         }
     }
 

@@ -9,14 +9,21 @@
 class IBaseInstType {
 public:
     // friend class InstTypeFactory;
-    using KeyT     = uint16_t; // NOLINT
-    using pTable_u = std::shared_ptr<const BiLookupTable<KeyT>>;
-    using infoTup_u= std::tuple<KeyT, uint16_t, std::string_view, std::string_view>; // functKey, opcode, name, XLEN
+    using KeyT      = uint16_t; // NOLINT
+    using pBiTable_u= std::shared_ptr<const BiLookupTable<KeyT>>;
+    using infoTup_u = std::tuple<KeyT, uint16_t, std::string_view, std::string_view>; // functKey, opcode, name, XLEN
+
+    struct InstInfo {
+        std::string_view name_;
+        std::string_view XLEN_; // NOLINT
+        KeyT funct_ {};
+        uint16_t opcode_ {};
+    };
 
 protected:
-    pTable_u InstTable_;
-    std::optional<BiLookupTable<KeyT>::idxAndInfo_u> FunctOpcAndXlenCache_;
-    std::optional<BiLookupTable<KeyT>::nameAndInfo_u> NameAndXlenCache_;
+    pBiTable_u InstTable_;
+    std::optional<BiLookupTable<KeyT>::IndexInfo> FunctOpcAndXlenCache_;
+    std::optional<BiLookupTable<KeyT>::NameInfo> NameAndXlenCache_;
     std::vector<std::string> InstAssembly_;
     std::string BaseURL_ { R"(https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/)" };
     InstFormat Format_ { InstFormat::UNKOWN };
@@ -57,22 +64,22 @@ public:
 
     void SetInstAssembly(std::vector<std::string> assembly);
 
-    void SetFormat(InstFormat format) { Format_= format; }
+    void SetFormat(InstFormat format) noexcept;
 
     // virtual std::tuple<std::string_view, std::string_view> LookupNameAndXLEN();
-    virtual BiLookupTable<KeyT>::nameAndInfo_u LookupNameAndInfo();
-    virtual BiLookupTable<KeyT>::idxAndInfo_u LookupIdxAndInfo();
+    virtual BiLookupTable<KeyT>::NameInfo LookupNameAndInfo();
+    virtual BiLookupTable<KeyT>::IndexInfo LookupIdxAndInfo();
     virtual void Parse()= 0;
     // virtual std::string_view GetInstXLEN() const              = 0;
     virtual const InstLayout &Assembly()                 = 0;
     virtual const std::vector<std::string> &Disassembly()= 0; // hex -> add
 
 protected:
-    virtual pTable_u buildTable()   = 0;
+    virtual pBiTable_u buildTable() = 0;
     virtual KeyT calculateFunctKey()= 0;
+    virtual void mnemonicHelper() { };
     void init();
-
-public:
+    void appendOperands(std::initializer_list<std::string_view> regs);
 };
 
 // Date:25/12/19/16:23
