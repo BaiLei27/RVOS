@@ -1,5 +1,5 @@
 #include "Gui/InstCommST.hh"
-BinaryFieldWidgetPairST::BinaryFieldWidgetPairST(std::vector<Gtk::Label*> &binaryLabelsV_,const InstFieldST &field) {
+BinaryFieldWidget::BinaryFieldWidget(std::vector<Gtk::Label*> &binaryLabelsV_,const S_InstBinaryField_t &field) {
     box = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 0);
     box->set_css_classes({field.cssClass_});
     box->set_margin_start(0);
@@ -19,28 +19,28 @@ BinaryFieldWidgetPairST::BinaryFieldWidgetPairST(std::vector<Gtk::Label*> &binar
         index_++;
     }
 }
-void BinaryFieldWidgetPairST::highlight() {
+void BinaryFieldWidget::highlight() {
     for(auto &label : controlLabelsV_) {
         label->add_css_class("highlighted");
     }
 }
-void BinaryFieldWidgetPairST::unhighlight() {
+void BinaryFieldWidget::unhighlight() {
     for(auto &label : controlLabelsV_) {
         label->remove_css_class("highlighted");
     }
 }
-void BinaryFieldWidgetPairST::highlight_in_mouse() {
+void BinaryFieldWidget::highlight_in_mouse() {
     for(auto &label : controlLabelsV_) {
         label->add_css_class("highlighted-in-mouse");
     }
 }
-void BinaryFieldWidgetPairST::unhighlight_in_mouse() {
+void BinaryFieldWidget::unhighlight_in_mouse() {
     for(auto &label : controlLabelsV_) {
         label->remove_css_class("highlighted-in-mouse");
     }
 }
 
-void BinaryFieldWidgetPairST::setupController(const std::string& name, InstFormatST& instFmt,
+void BinaryFieldWidget::setupController(const std::string& name, S_InstTypeRelationEntity_t& instFmt,
          BinaryFieldWidgetSTMap& binaryFieldWidgets_, AsmMnemonicWidgetSTMap& asmFieldWidgets_) {
     pMotionController = Gtk::EventControllerMotion::create();
     pMotionController->signal_motion().connect([this, name, instFmt, binaryFieldWidgets_, asmFieldWidgets_](double x, double y) {
@@ -75,7 +75,7 @@ void BinaryFieldWidgetPairST::setupController(const std::string& name, InstForma
     box->add_controller(pMotionController);
 }
 
-void BinaryFieldWidgetPairST::updateControlLables(uint32_t instructionValue) {
+void BinaryFieldWidget::updateControlLables(uint32_t instructionValue) {
     for(size_t i = 0; i < controlLabelsV_.size(); i++) {
         int bitPosition = controlLabelsV_.size() - 1 - i;
         int bitValue = (instructionValue >> bitPosition) & 0x1;
@@ -83,7 +83,7 @@ void BinaryFieldWidgetPairST::updateControlLables(uint32_t instructionValue) {
     }
 }
 
-AsmMnemonicWidgetPairST::AsmMnemonicWidgetPairST(const std::string& name, Gtk::Box* parentAsmBox) {
+AsmMnemonicWidget::AsmMnemonicWidget(const std::string& name, Gtk::Box* parentAsmBox) {
     if (parentAsmBox) {
         box = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 0);
         box->set_css_classes({"instruction-container"});
@@ -101,20 +101,20 @@ AsmMnemonicWidgetPairST::AsmMnemonicWidgetPairST(const std::string& name, Gtk::B
     }
 }
 
-void AsmMnemonicWidgetPairST::highlight() {
+void AsmMnemonicWidget::highlight() {
     label->add_css_class("highlighted");
 }
-void AsmMnemonicWidgetPairST::unhighlight() {
+void AsmMnemonicWidget::unhighlight() {
     label->remove_css_class("highlighted");
 }
-void AsmMnemonicWidgetPairST::highlight_in_mouse() {
+void AsmMnemonicWidget::highlight_in_mouse() {
     label->add_css_class("highlighted-in-mouse");
 }
-void AsmMnemonicWidgetPairST::unhighlight_in_mouse() {
+void AsmMnemonicWidget::unhighlight_in_mouse() {
     label->remove_css_class("highlighted-in-mouse");
 }
 
-void AsmMnemonicWidgetPairST::setupController(const std::string& name, InstFormatST& instFmt, BinaryFieldWidgetSTMap& binaryFieldWidgets_) {
+void AsmMnemonicWidget::setupController(const std::string& name, S_InstTypeRelationEntity_t& instFmt, BinaryFieldWidgetSTMap& binaryFieldWidgets_) {
     pMotionController = Gtk::EventControllerMotion::create();
     pMotionController->signal_motion().connect([this, name, instFmt, binaryFieldWidgets_](double x, double y) {
         highlight_in_mouse();

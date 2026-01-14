@@ -20,13 +20,15 @@ public:
     Gtk::Button* InsButtonParse_ = nullptr;
     Gtk::TextView* InsTextView_ = nullptr;
     Instruction *pInst_ = nullptr;
-    RISCVInstructionWindow();
     InstFormatUI* rTypeUI_ = nullptr;
     InstFormatUI* iTypeUI_ = nullptr;
     InstFormatUI* sTypeUI_ = nullptr;
     InstFormatUI* bTypeUI_ = nullptr;
     InstFormatUI* uTypeUI_ = nullptr;
     InstFormatUI* jTypeUI_ = nullptr;
+public:
+    RISCVInstructionWindow();
+    ~RISCVInstructionWindow() = default;
 private:
     void initInstFormatUI();
     void onInsButtonParseClicked();
@@ -108,10 +110,8 @@ void RISCVInstructionWindow::onInsButtonParseClicked() {
             cleanStr = cleanStr.substr(2);
         }
 
-        // uint32_t instructionNum = std::stoul(cleanStr, nullptr, 16);
         uint64_t value = 0;
         value = std::stoull(cleanStr, nullptr, 16);
-        std::cout << "Parsed value: " << std::hex << "0x" << value << std::dec << " (" << value << ")" << std::endl;
         
         if (value > 0xFFFFFFFFULL) {
             throw std::out_of_range("instruction value out of 32-bit range");
