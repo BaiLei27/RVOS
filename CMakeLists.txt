@@ -33,7 +33,7 @@ ExternalProject_Add(
     SOURCE_DIR ${subProjectPath}/ins
     BINARY_DIR ${INST_builddir}
     CMAKE_ARGS
-    -DCMAKE_CXX_COMPILER=clang++
+    #-DCMAKE_CXX_COMPILER=clang++
     -DCMAKE_MODULE_PATH=${customModulesPath}
     -DrootPath=${rootPath}
     -DrootBuilddir=${rootBuilddir}
