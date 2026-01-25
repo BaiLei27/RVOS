@@ -5,7 +5,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
 set(CMAKE_COLOR_DIAGNOSTICS ON)
+set(CMAKE_COLOR_DIAGNOSTICS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTKMM REQUIRED gtkmm-4.0)
 
 project(INST
     VERSION "0.0.1"
@@ -22,13 +26,12 @@ include(CodeCheck)
 
 # check_ipo_supported()
 check_ipo_supported(RESULT _ipo_supported)
-
 if(_ipo_supported)
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        add_compile_options(-flto=full)
-    else()
-        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
-    endif()
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-flto=full)
+  else()
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+  endif()
 endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -46,6 +49,12 @@ add_compile_options(
     "$<$<CONFIG:Debug>:-ggdb3;-DDEBUG>"
     $<$<CONFIG:Release,MinSizeRel>:-DNDEBUG>
 )
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_|amd|AMD)64$")
+    add_compile_options(
+        -march=native
+    )
+endif()
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_|amd|AMD)64$")
     add_compile_options(
@@ -70,6 +79,37 @@ add_executable(
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     SUFFIX ".exe"
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${backend}
+    PRIVATE ${GTKMM_LIBRARIES}
+)
+
+add_executable(
+    ${PROJECT_NAME}_gui
+    src/Gui/Main.cc
+)
+
+target_link_libraries(${PROJECT_NAME}_gui PRIVATE
+    ${backend}
+    ${GTKMM_LIBRARIES}
+)
+
+set_target_properties(${PROJECT_NAME}_gui PROPERTIES
+    SUFFIX ".exe"
+)
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/res)
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/InstStyle.css
+    ${CMAKE_CURRENT_BINARY_DIR}/res/InstStyle.css
+    COPYONLY
+)
+
+target_compile_definitions(${PROJECT_NAME}_gui PUBLIC
+    CSS_FILE_PATH="${CMAKE_CURRENT_BINARY_DIR}/res/InstStyle.css"
 )
 
 set_target_properties(${backend} PROPERTIES
@@ -109,12 +149,23 @@ target_sources(${backend} PRIVATE
 
     inc/Core/Instruction.hh
     src/Core/Instruction.cc
+
 )
 
-SetupCodeChecks(${backend} ${PROJECT_NAME})
+# GUI sources belong to the GUI executable target so GUI-specific
+# compile definitions (like CSS_FILE_PATH) apply to them.
+target_sources(${PROJECT_NAME}_gui PRIVATE
+    inc/Gui/RISCVApplication.hh
+    src/Gui/RISCVApplication.cc
+
+    inc/Gui/RISCVInstructionWindow.hh
+    src/Gui/RISCVInstructionWindow.cc
+)
+
+SetupCodeChecks(${backend} ${PROJECT_NAME} ${PROJECT_NAME}_gui)
 
 DefineCodeChecksTargets("fmt" "tidy")
-get_filename_component(builddir ${PROJECT_BINARY_DIR} NAME)
+get_filename_component(builddir ${CMAKE_CURRENT_BINARY_DIR} NAME)
 get_filename_component(root ${rootBuilddir} NAME)
 
 if(ClangFormat_FOUND OR ClangTidy_FOUND)
