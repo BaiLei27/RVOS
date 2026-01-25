@@ -7,6 +7,9 @@ set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTKMM REQUIRED gtkmm-4.0)
+
 project(INST
     VERSION "0.0.1"
     HOMEPAGE_URL "https://github.com/Baiyi27/RVOS.git"
@@ -56,6 +59,25 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     SUFFIX ".exe"
 )
 
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${backend}
+    PRIVATE ${GTKMM_LIBRARIES}
+)
+
+add_executable(
+    ${PROJECT_NAME}_gui
+    src/Gui/Main.cc
+)
+
+target_link_libraries(${PROJECT_NAME}_gui PRIVATE
+    ${backend}
+    ${GTKMM_LIBRARIES}
+)
+
+set_target_properties(${PROJECT_NAME}_gui PROPERTIES
+    SUFFIX ".exe"
+)
+
 set_target_properties(${backend} PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
@@ -65,10 +87,7 @@ set_target_properties(${backend} PROPERTIES
 
 include_directories(SYSTEM
     inc
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${backend}
+    ${GTKMM_INCLUDE_DIRS}
 )
 
 target_sources(${backend} PRIVATE
@@ -92,6 +111,8 @@ target_sources(${backend} PRIVATE
 
     inc/Core/Instruction.hh
     src/Core/Instruction.cc
+
+    src/Gui/RISCVInstructionWindow.cc
 )
 
 SetupCodeChecks(${backend} ${PROJECT_NAME})
