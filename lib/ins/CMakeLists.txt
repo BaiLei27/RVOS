@@ -78,6 +78,18 @@ set_target_properties(${PROJECT_NAME}_gui PROPERTIES
     SUFFIX ".exe"
 )
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/res)
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/InstStyle.css
+    ${CMAKE_CURRENT_BINARY_DIR}/res/InstStyle.css
+    COPYONLY
+)
+
+target_compile_definitions(${PROJECT_NAME}_gui PUBLIC
+    CSS_FILE_PATH="${CMAKE_CURRENT_BINARY_DIR}/res/InstStyle.css"
+)
+
 set_target_properties(${backend} PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
@@ -112,10 +124,24 @@ target_sources(${backend} PRIVATE
     inc/Core/Instruction.hh
     src/Core/Instruction.cc
 
+)
+
+# GUI sources belong to the GUI executable target so GUI-specific
+# compile definitions (like CSS_FILE_PATH) apply to them.
+target_sources(${PROJECT_NAME}_gui PRIVATE
+    inc/Gui/InstFormatUI.hh
+    src/Gui/InstFormatUI.cc
+
+    inc/Gui/AsmMnemonicWidget.hh
+    src/Gui/AsmMnemonicWidget.cc
+
+    inc/Gui/BinaryFieldWidget.hh
+    src/Gui/BinaryFieldWidget.cc
+
     src/Gui/RISCVInstructionWindow.cc
 )
 
-SetupCodeChecks(${backend} ${PROJECT_NAME})
+SetupCodeChecks(${backend} ${PROJECT_NAME} ${PROJECT_NAME}_gui)
 
 DefineCodeChecksTargets("fmt" "tidy")
 get_filename_component(builddir ${PROJECT_BINARY_DIR} NAME)

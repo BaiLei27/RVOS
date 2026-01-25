@@ -75,7 +75,7 @@ union InstLayout {
 
     InstLayout &operator= (uint32_t instruction);
 
-    operator uint32_t() const;
+    operator uint32_t () const;
 };
 
 // NOLINTEND

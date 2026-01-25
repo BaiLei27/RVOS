@@ -28,6 +28,13 @@ RType::RType(std::vector<std::string> instAssembly, InstFormat format, bool hasS
 
 void RType::Parse()
 {
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.opc));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.rd));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.fct3));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.rs1));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.rs2));
+    InstBitsField_.emplace_back(static_cast<uint32_t>(Layout_.R.fct7));
+
     std::cout << "opcode: 0x" << std::hex << Opcode_ << '\n'
               << "Hexadecimal: 0x" << Layout_.entity_ << '\n'
               << "funct3: " << Layout_.R.fct3 << '\n'
@@ -43,7 +50,7 @@ void RType::mnemonicHelper()
     auto rs1= isa::LOOKUP_REG_NAME(Layout_.R.rs1, HasSetABI_);
     auto rs2= isa::LOOKUP_REG_NAME(Layout_.R.rs2, HasSetABI_);
 
-    appendOperands({ " ", rd, ", ", rs1, ", ", rs2 });
+    appendOperands({ rd, rs1, rs2 });
 }
 
 const std::vector<std::string> &RType::Disassembly()

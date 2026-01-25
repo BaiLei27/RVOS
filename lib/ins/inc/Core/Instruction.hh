@@ -21,8 +21,8 @@ public:
     Instruction &operator= (Instruction &&that) noexcept;
     virtual ~Instruction()= default;
 
-    explicit operator std::string() const;
-    explicit operator uint32_t() const;
+    explicit operator std::string () const;
+    explicit operator uint32_t () const;
 
 public:
     const IBaseInstType *GetTypePtr() const;

@@ -1,28 +1,33 @@
 #include <gtkmm.h>
-#include "RISCVInstructionWindow.cc"
+#include "Gui/RISCVInstructionWindow.hh"
 
-class RISCVApplication : public Gtk::Application {
+class RISCVApplication: public Gtk::Application {
 public:
-    RISCVApplication() : Gtk::Application("org.gtkmm.riscv.visualization", Gio::Application::Flags::NONE) {}
+    RISCVApplication(): Gtk::Application("org.gtkmm.riscv.visualization", Gio::Application::Flags::NONE) { }
 
-    static Glib::RefPtr<RISCVApplication> Create() {
+    static Glib::RefPtr<RISCVApplication> Create()
+    {
         return Glib::RefPtr<RISCVApplication>(new RISCVApplication());
     }
 
 protected:
-    void on_activate() override {
-        auto pWindow = new RISCVInstructionWindow();
+    void on_activate() override
+    {
+        auto pWindow= new RISCVInstructionWindow();
         add_window(*pWindow);
 
         pWindow->signal_close_request().connect([pWindow]() -> bool {
             delete pWindow;
             return true;
-        }, false);
+        },
+                                                false);
 
         pWindow->show();
     }
 };
-int main(int argc, char* argv[]) {
-    auto app = RISCVApplication::Create();
+
+int main(int argc, char *argv[])
+{
+    auto app= RISCVApplication::Create();
     return app->run(argc, argv);
 }

@@ -8,7 +8,7 @@ InstLayout &InstLayout::operator= (uint32_t instruction)
     return *this;
 }
 
-InstLayout::operator uint32_t() const
+InstLayout::operator uint32_t () const
 {
     return entity_;
 }

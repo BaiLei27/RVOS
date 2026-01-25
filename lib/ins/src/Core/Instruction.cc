@@ -71,9 +71,9 @@ Instruction &Instruction::operator= (Instruction &&that) noexcept
 
 // Instruction::Instruction(std::string_view inst) { }
 
-Instruction::operator std::string() const { return Disassembly_.str(); }
+Instruction::operator std::string () const { return Disassembly_.str(); }
 
-Instruction::operator uint32_t() const { return BitField_.to_ulong(); }
+Instruction::operator uint32_t () const { return BitField_.to_ulong(); }
 
 const IBaseInstType *Instruction::GetTypePtr() const { return Type_.get(); }
 
