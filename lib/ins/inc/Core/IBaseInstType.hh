@@ -51,6 +51,7 @@ public:
 public:
     const InstLayout &GetInstLayout() const noexcept;
     const std::vector<std::string> &GetInstAssembly() const noexcept;
+    const std::vector<std::string> &GetInstAssemblyVector() const noexcept;
     const std::vector<uint32_t> &GetInstBitsField() const noexcept;
     [[nodiscard]] uint16_t GetInstOpcode() const noexcept;
     [[nodiscard]] KeyT GetInstFunctKey() const noexcept;
@@ -72,7 +73,7 @@ public:
 protected:
     virtual pTable_u buildTable()   = 0;
     virtual KeyT calculateFunctKey()= 0;
-    virtual void mnemonicHelper() { };
+    virtual void mnemonicHelper() {};
     void init();
     void appendOperands(std::initializer_list<std::string_view> regs);
 

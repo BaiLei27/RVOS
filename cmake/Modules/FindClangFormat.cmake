@@ -44,6 +44,7 @@ else()
     set(vscodeFolder "$ENV{HOME}/.vscode")
     set(vscodeServerFolder "$ENV{HOME}/.vscode-server")
 endif()
+message(VERBOSE "vscodeServerFolder: '${vscodeServerFolder}'")
 
 if(EXISTS "${vscodeFolder}" AND IS_DIRECTORY "${vscodeFolder}")
     file(GLOB matchedPaths "${vscodeFolder}/${extensionPathSuffix}")

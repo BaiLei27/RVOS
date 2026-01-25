@@ -43,7 +43,9 @@ std::optional<uint16_t> LOOKUP_REG_IDX(std::string &target)
     if(target.starts_with('x') && CheckIfDigit(target.substr(1), std::isdigit)) {
         return Str2Int(target.substr(1), 10);
 #endif
-    } else if(CheckIfDigit(target, std::isdigit)) {
+    }
+
+    else if(CheckIfDigit(target, std::isdigit)) {
         return Str2Int(target, 10);
 
     } else if(target.starts_with("0x") && CheckIfDigit(target.substr(2), std::isxdigit)) {
@@ -59,7 +61,7 @@ std::optional<uint16_t> LOOKUP_REG_IDX(std::string &target)
 #if __cplusplus >= 202100L
             std::ranges::iota(idx, 0);
 #else
-            std::iota(idx.begin(), idx.end(), 0);
+        std::iota(idx.begin(), idx.end(), 0);
 #endif
             std::ranges::sort(idx, {}, [](size_t i) { return G_INDEX_REGS_ABI[i].second; });
             return idx;

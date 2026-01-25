@@ -40,6 +40,7 @@ ExternalProject_Add(
     INSTALL_COMMAND ""
 )
 
-MergeCompileCmdFiles(${RVOS_builddir} ${INST_builddir})
+# MergeCompileCmdFiles(${RVOS_builddir} ${INST_builddir})
+MergeCompileCmdFiles(${INST_builddir})
 # add_dependencies(RVOS merge_compile_commands)
 add_dependencies(INST merge_compile_commands)

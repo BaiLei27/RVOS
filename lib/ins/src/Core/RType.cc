@@ -49,7 +49,7 @@ void RType::mnemonicHelper()
     auto rs1= isa::LOOKUP_REG_NAME(Layout_.R.rs1, HasSetABI_);
     auto rs2= isa::LOOKUP_REG_NAME(Layout_.R.rs2, HasSetABI_);
 
-    appendOperands({ " ", rd, ", ", rs1, ", ", rs2 });
+    appendOperands({ rd, rs1, rs2 });
 }
 
 const std::vector<std::string> &RType::Disassembly()

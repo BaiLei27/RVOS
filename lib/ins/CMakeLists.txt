@@ -37,6 +37,12 @@ configure_file(
     COPYONLY
 )
 
+target_include_directories(${PROJECT_NAME}_backEnd
+    PUBLIC
+    inc
+    ${GTKMM_INCLUDE_DIRS}
+)
+
 target_compile_definitions(${PROJECT_NAME}_backEnd PUBLIC
     CSS_FILE_PATH="${CMAKE_CURRENT_BINARY_DIR}/res/InstStyle.css"
 )
@@ -80,31 +86,52 @@ target_sources(${PROJECT_NAME}_backEnd PRIVATE
     inc/Gui/InstFormatUI.hh
     src/Gui/InstFormatUI.cc
 
-    inc/Gui/InstCommST.hh
-    src/Gui/InstCommST.cc
+    inc/Gui/AsmMnemonicWidget.hh
+    src/Gui/AsmMnemonicWidget.cc
+
+    inc/Gui/BinaryFieldWidget.hh
+    src/Gui/BinaryFieldWidget.cc
 
     src/Gui/RISCVInstructionWindow.cc
 )
 
+# add_executable(
+#     ${PROJECT_NAME}_test
+#     tests/INST.cc
+# )
+
+# target_include_directories(
+#     ${PROJECT_NAME}_test PRIVATE
+#     # inc
+# )
+
+# target_link_libraries(
+#     ${PROJECT_NAME}_test PRIVATE 
+#     ${PROJECT_NAME}_backEnd
+# )
+
 add_executable(
-    ${PROJECT_NAME}
-    # tests/INST.cc
+    ${PROJECT_NAME}_gui
     src/Gui/Main.cc
 )
-set_target_properties(${PROJECT_NAME} PROPERTIES
+
+set_target_properties(
+    ${PROJECT_NAME}_gui PROPERTIES
     SUFFIX ".exe"
 )
-include_directories(
-    inc
-    ${GTKMM_INCLUDE_DIRS}
-)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
+# target_include_directories(
+#     ${PROJECT_NAME}_gui PRIVATE 
+#     # inc
+#     # ${GTKMM_INCLUDE_DIRS}
+# )
+
+target_link_libraries( ${PROJECT_NAME}_gui PRIVATE 
     ${PROJECT_NAME}_backEnd
-    PRIVATE ${GTKMM_LIBRARIES}
+    ${GTKMM_LIBRARIES}
 )
 
-SetupCodeChecks(${PROJECT_NAME}_backEnd ${PROJECT_NAME})
+SetupCodeChecks(${PROJECT_NAME}_backEnd ${PROJECT_NAME}_test ${PROJECT_NAME}_gui)
 
 DefineCodeChecksTargets("fmt" "tidy")
 get_filename_component(builddir ${PROJECT_BINARY_DIR} NAME)
