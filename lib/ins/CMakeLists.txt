@@ -7,6 +7,9 @@ set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTKMM REQUIRED gtkmm-4.0)
+
 project(INST
     VERSION "0.0.1"
     HOMEPAGE_URL "https://github.com/Baiyi27/RVOS.git"
@@ -63,6 +66,37 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     SUFFIX ".exe"
 )
 
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${backend}
+    PRIVATE ${GTKMM_LIBRARIES}
+)
+
+add_executable(
+    ${PROJECT_NAME}_gui
+    src/Gui/Main.cc
+)
+
+target_link_libraries(${PROJECT_NAME}_gui PRIVATE
+    ${backend}
+    ${GTKMM_LIBRARIES}
+)
+
+set_target_properties(${PROJECT_NAME}_gui PROPERTIES
+    SUFFIX ".exe"
+)
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/res)
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/InstStyle.css
+    ${CMAKE_CURRENT_BINARY_DIR}/res/InstStyle.css
+    COPYONLY
+)
+
+target_compile_definitions(${PROJECT_NAME}_gui PUBLIC
+    CSS_FILE_PATH="${CMAKE_CURRENT_BINARY_DIR}/res/InstStyle.css"
+)
+
 set_target_properties(${backend} PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
@@ -72,10 +106,7 @@ set_target_properties(${backend} PROPERTIES
 
 include_directories(SYSTEM
     inc
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${backend}
+    ${GTKMM_INCLUDE_DIRS}
 )
 
 target_sources(${backend} PRIVATE
@@ -99,9 +130,20 @@ target_sources(${backend} PRIVATE
 
     inc/Core/Instruction.hh
     src/Core/Instruction.cc
+
 )
 
-SetupCodeChecks(${backend} ${PROJECT_NAME})
+# GUI sources belong to the GUI executable target so GUI-specific
+# compile definitions (like CSS_FILE_PATH) apply to them.
+target_sources(${PROJECT_NAME}_gui PRIVATE
+    inc/Gui/RISCVApplication.hh
+    src/Gui/RISCVApplication.cc
+
+    inc/Gui/RISCVInstructionWindow.hh
+    src/Gui/RISCVInstructionWindow.cc
+)
+
+SetupCodeChecks(${backend} ${PROJECT_NAME} ${PROJECT_NAME}_gui)
 
 DefineCodeChecksTargets("fmt" "tidy")
 get_filename_component(builddir ${PROJECT_BINARY_DIR} NAME)
