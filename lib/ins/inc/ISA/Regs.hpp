@@ -1,12 +1,18 @@
 #pragma once
 
+#include <cstdint>
 #include <array>
-#include <string_view>
-#include <utility>
-#include <cstddef>
+#include <optional>
+#include <string>
 
 // Fixed-size, compile-time mapping of register index -> (name, ABI)
-constexpr std::array<std::pair<std::string_view, std::string_view>, 32> G_INDEX_REGS_ABI= {
+namespace isa {
+
+constexpr uint16_t G_REG_NUMBER= 32;
+
+using strPair_u= std::pair<std::string_view, std::string_view>;
+
+constexpr std::array<strPair_u, G_REG_NUMBER> G_INDEX_REGS_ABI= {
     { { "x0", "zero" },
      { "x1", "ra" },
      { "x2", "sp" },
@@ -41,10 +47,37 @@ constexpr std::array<std::pair<std::string_view, std::string_view>, 32> G_INDEX_
      { "x31", "t6" } }
 };
 
-static_assert(G_INDEX_REGS_ABI.size() == 32, "G_INDEX_REGS_ABI must contain 32 entries");
+// static_assert(G_INDEX_REGS_ABI.size() == 32, "G_INDEX_REGS_ABI must contain 32 entries");
+std::optional<uint16_t> LOOKUP_REG_IDX(std::string &target);
 
 // constexpr accessor: fast O(1) lookup by index at compile time
-constexpr auto GET_REG_ABI(size_t idx) noexcept
+constexpr std::optional<strPair_u> PARSE_REG_NAME(size_t idx)
 {
-    return G_INDEX_REGS_ABI[idx];
+    if(idx >= G_INDEX_REGS_ABI.size()) return std::nullopt;
+
+    return std::make_optional(G_INDEX_REGS_ABI[idx]);
 }
+
+constexpr std::string_view LOOKUP_REG_NAME(size_t regIdx, bool hasSetABI= false, std::string_view fallback= "?")
+{
+    auto regOpt= PARSE_REG_NAME(regIdx);
+    if(!regOpt) {
+        return fallback;
+    }
+    return hasSetABI ? regOpt->second : regOpt->first;
+}
+
+constexpr bool REG_COMPARE_LESS(std::string_view x, std::string_view y)
+{
+    if(x.size() != y.size()) {
+        return x.size() < y.size();
+    }
+    return x < y;
+}
+
+constexpr bool REG_ENTRY_LESS(const strPair_u &regEntry, const std::string_view &targetName) noexcept
+{
+    return REG_COMPARE_LESS(regEntry.first, targetName);
+}
+
+} // namespace isa

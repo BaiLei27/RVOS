@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <array>
 
 #include "Core/Instruction.hh"
@@ -9,9 +10,34 @@ Instruction::Instruction(uint32_t inst, bool hasSetABI)
       BitField_(inst)
 {
     if(Type_) {
-        const auto &[_, xlen]= Type_->LookupNameAndXLEN();
+        const auto &[MAN_URL, XLEN, _1]= Type_->LookupNameAndInfo();
 
-        XLEN_  = xlen;
+        XLEN_  = XLEN;
+        Manual_= MAN_URL;
+        Format_= GetFormat();
+    }
+}
+
+Instruction::Instruction(std::string &assembly, bool hasSetABI)
+    : Disassembly_(assembly)
+{
+    std::ranges::replace(assembly, ',', ' ');
+    std::stringstream tmp(assembly);
+
+    std::vector<std::string> parts;
+    while(tmp >> parts.emplace_back()) // get inst name;
+        ;
+    // parts.pop_back();
+
+    Type_= InstTypeFactory::CreateType(parts, hasSetABI);
+
+    if(Type_) {
+        const auto &[MAN_URL, XLEN, _1, opc]= Type_->LookupIdxAndInfo();
+
+        // std::cout << "XLEN: " << XLEN << '\n'
+        //           << "MAN_URL: " << MAN_URL << '\n';
+        XLEN_  = XLEN;
+        Manual_= MAN_URL;
         Format_= GetFormat();
     }
 }
@@ -25,7 +51,7 @@ Instruction::Instruction(Instruction &&that) noexcept
       BitField_(that.BitField_)
 {
     that.XLEN_  = "UNDEF";
-    that.Format_= "Undef";
+    that.Format_= "UNKNOW";
 }
 
 Instruction &Instruction::operator= (Instruction &&that) noexcept
@@ -38,7 +64,7 @@ Instruction &Instruction::operator= (Instruction &&that) noexcept
         BitField_   = that.BitField_;
 
         that.XLEN_  = "UNDEF";
-        that.Format_= "Undef";
+        that.Format_= "UNKNOW";
     }
     return *this;
 }
@@ -48,6 +74,8 @@ Instruction &Instruction::operator= (Instruction &&that) noexcept
 Instruction::operator std::string() const { return Disassembly_.str(); }
 
 Instruction::operator uint32_t() const { return BitField_.to_ulong(); }
+
+const IBaseInstType *Instruction::GetTypePtr() const { return Type_.get(); }
 
 const IBaseInstType &Instruction::GetType() const { return *Type_; }
 
@@ -61,41 +89,56 @@ std::string_view Instruction::GetManual() const { return Manual_; }
 
 std::string_view Instruction::GetFormat() const noexcept
 {
-    if(!Type_) return "Undef";
+    if(!Type_) return "UNKNOW";
 
     static constexpr std::array<std::string_view, 6> S_NAMES= { "R-Type", "I-Type", "S-Type", "B-Type", "U-Type", "J-Type" };
 
     auto idx= static_cast<std::size_t>(Type_->GetInstFormat());
 
-    return idx < S_NAMES.size() ? S_NAMES[idx] : "Undef";
+    return idx < S_NAMES.size() ? S_NAMES[idx] : "UNKNOW";
 }
 
-void Instruction::Decode()
+bool Instruction::Decode()
 {
-    std::cout << "BitField: " << BitField_ << '\n';
-
     if(Type_) {
-        const auto &v= Type_->Disassembly();
+        if(BitField_.none()) {
+            std::bitset<32> tmp(Type_->Assembly());
+            BitField_= std::move(tmp);
+            resetStream();
 
-        // for(char comma[] { '\0', ' ', '\0' }; const auto &i: v) {
-        //     Disassembly_ << comma << i, comma[0]= ',';
-        // }
-
-        std::string sep;
-        for(const auto &e: v) {
-            Disassembly_ << sep << e;
-            sep= (sep.empty() ? " " : ", ");
+        } else {
+            Type_->Disassembly();
         }
 
-        std::cout << "Assembly: " << Disassembly_.str() << '\n';
         Type_->Parse();
 
-        std::cout << "Format: " << Format_ << '\n'
-                  << "Arch: " << XLEN_ << '\n'
-                  << "Manual: " << Manual_ << '\n';
-    } else {
-        std::cout << "unimp instruction: " << BitField_.to_ulong() << '\n';
+        const auto &v= Type_->GetInstAssembly();
+        for(const auto &e: v) {
+            Disassembly_ << e;
+            // std::cout << Disassembly_.str() << '\n';
+        }
+
+        return true;
     }
+
+    std::cout << "unimp instruction: 0x" << std::hex << BitField_.to_ulong() << '\n';
+
+    return false;
 }
 
-void Instruction::Encode() { }
+void Instruction::ShowInfo() const
+{
+    std::cout << "BitField: " << BitField_ << '\n'
+              << "Assembly: " << Disassembly_.str() << '\n';
+    std::cout << "Format: " << Format_ << '\n'
+              << "Arch: " << XLEN_ << '\n'
+              << "Manual: " << Manual_ << '\n';
+}
+
+void Instruction::resetStream()
+{
+    Disassembly_.str("");
+    Disassembly_.clear();
+    // Disassembly_.seekg(0);
+    // Disassembly_.seekp(0);
+}
