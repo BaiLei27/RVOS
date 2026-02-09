@@ -136,6 +136,11 @@ target_sources(${backend} PRIVATE
 # GUI sources belong to the GUI executable target so GUI-specific
 # compile definitions (like CSS_FILE_PATH) apply to them.
 target_sources(${PROJECT_NAME}_gui PRIVATE
+    inc/Gui/InstCommST.hh
+
+    inc/Gui/InstFormatUI.hh
+    src/Gui/InstFormatUI.cc
+
     inc/Gui/RISCVApplication.hh
     src/Gui/RISCVApplication.cc
 
