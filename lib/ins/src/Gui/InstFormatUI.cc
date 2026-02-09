@@ -1,6 +1,6 @@
 #include "Gui/InstFormatUI.hh"
 
-InstFormatUI::InstFormatUI(const S_InstTypeRelationEntity_t &format)
+InstFormatUI::InstFormatUI(const InstTypeRelationEntity &format)
     : Gtk::Box(Gtk::Orientation::VERTICAL, 10), format_(format)
 {
     setupAssemblyDisplay();
@@ -15,6 +15,13 @@ void InstFormatUI::setupAssemblyDisplay()
     pAsmTitle->set_margin_end(8);
     pAsmArea->append(*pAsmTitle);
 
+    for(const std::string &iStr: format_.instTypeV_) {
+        AsmMnemonicWidget *pAsmMnemonic= new AsmMnemonicWidget(iStr, pAsmArea);
+        if(iStr.compare(",") == 0)
+            continue;
+        AsmFieldWidgets_[iStr]= pAsmMnemonic;
+    }
+
     append(*pAsmArea);
 }
 
@@ -28,12 +35,24 @@ void InstFormatUI::setupBinaryDisplay()
     pBinaryArea->set_valign(Gtk::Align::CENTER);
     pBinaryArea->set_hexpand(false);
 
+    for(const auto &binaryElem: format_.binaryV_) {
+        BinaryFieldWidget *pTmpBinaryField   = new BinaryFieldWidget(BinaryLabelsV_, binaryElem);
+        BinaryFieldWidgets_[binaryElem.name_]= pTmpBinaryField;
+        pBinaryArea->append(*pTmpBinaryField->mBox_);
+    }
+
     append(*pBinaryArea);
 }
 
 void InstFormatUI::setupFieldControllers()
 {
+    for(const auto &asmElem: AsmFieldWidgets_) {
+        asmElem.second->SetupController(asmElem.first, format_, BinaryFieldWidgets_);
+    }
 
+    for(const auto &binaryElem: BinaryFieldWidgets_) {
+        binaryElem.second->SetupController(binaryElem.first, format_, BinaryFieldWidgets_, AsmFieldWidgets_);
+    }
 }
 
 void InstFormatUI::UpdateDisplay(Instruction &inst)
@@ -50,6 +69,14 @@ void InstFormatUI::updateRTypeDisplay(Instruction &inst)
     int size                                    = 0;
     const std::vector<std::string> &instAssembly= inst.GetTypePtr()->GetInstAssembly();
     size                                        = format_.instTypeV_.size();
+    for(int i= 0, j= 0; i < size; i++) {
+        if(format_.instTypeV_[i] == ",")
+            continue;
+        if(instAssembly.at(j) == " " || instAssembly.at(j) == ",") {
+            j++;
+        }
+        AsmFieldWidgets_[format_.instTypeV_[i]]->mLabel_->set_text(instAssembly.at(j++));
+    }
 }
 
 void InstFormatUI::updateBinaryDisplay(Instruction &inst)
@@ -57,9 +84,13 @@ void InstFormatUI::updateBinaryDisplay(Instruction &inst)
     if(inst.GetTypePtr() == nullptr) {
         return;
     }
-    int size                                    = 0;
-    const std::vector<uint32_t> &instBitsField  = inst.GetTypePtr()->GetInstBitsField();
-    size                                        = format_.instTypeV_.size();
+    int size                                  = 0;
+    const std::vector<uint32_t> &instBitsField= inst.GetTypePtr()->GetInstBitsField();
+    size                                      = format_.binaryV_.size();
+
+    for(int i= size - 1, j= 0; i >= 0; i--) {
+        BinaryFieldWidgets_[format_.binaryV_[i].name_]->UpdateControlLables(instBitsField.at(j++));
+    }
 }
 
 void InstFormatUI::updateAssemblyDisplay(Instruction &inst)
@@ -73,9 +104,9 @@ void InstFormatUI::updateAssemblyDisplay(Instruction &inst)
     }
 }
 
-S_InstTypeRelationEntity_t createRTypeFormat()
+InstTypeRelationEntity createRTypeFormat()
 {
-    S_InstTypeRelationEntity_t rFormat;
+    InstTypeRelationEntity rFormat;
 
     rFormat.typeName_ = "R-Type";
     rFormat.fmt_      = InstFormat::R;

@@ -12,17 +12,16 @@
 #include "ISA/InstFormat.hh"
 #include "Gui/RISCVInstructionWindow.hh"
 
-RISCVInstructionWindow::RISCVInstructionWindow() : 
-    InsEntry_(Gtk::make_managed<Gtk::Entry>()) , 
-    InsButtonParse_(Gtk::make_managed<Gtk::Button>("解析指令")) ,
-    uiContainer_(Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 10))
+RISCVInstructionWindow::RISCVInstructionWindow(): InsEntry_(Gtk::make_managed<Gtk::Entry>()),
+                                                  InsButtonParse_(Gtk::make_managed<Gtk::Button>("Parse Instruction")),
+                                                  uiContainer_(Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 10))
 {
     set_title("RISC-V Instruction Encoder/Decoder");
     set_default_size(900, 300);
 
     uiContainer_->set_margin(15);
 
-    InsEntry_->set_placeholder_text("请输入指令");
+    InsEntry_->set_placeholder_text("Enter instruction");
     InsEntry_->signal_activate().connect(sigc::mem_fun(*this, &RISCVInstructionWindow::onInsButtonParseClicked));
 
     InsButtonParse_->signal_clicked().connect(sigc::mem_fun(*this, &RISCVInstructionWindow::onInsButtonParseClicked));
@@ -60,7 +59,7 @@ void RISCVInstructionWindow::onInsButtonParseClicked()
     int ret    = 0;
     auto hexStr= InsEntry_->get_text();
     if(hexStr.empty()) {
-        showError("请输入有效的十六进制指令");
+        showError("Please enter a valid hexadecimal instruction");
         return;
     }
 
@@ -79,21 +78,21 @@ void RISCVInstructionWindow::onInsButtonParseClicked()
         uint32_t instructionNum= static_cast<uint32_t>(value);
         pInst_                 = new Instruction(instructionNum);
         if(pInst_ == nullptr) {
-            throw std::invalid_argument("无法创建指令实例");
+            throw std::invalid_argument("Failed to create instruction instance");
         }
         ret= pInst_->Decode();
         if(ret <= 0) {
-            throw std::invalid_argument("无法解码指令");
+            throw std::invalid_argument("Failed to decode instruction");
         }
         showInsResult(*pInst_);
     } catch(const std::invalid_argument &e) {
-        showError("输入格式错误：请输入有效的十六进制数");
+        showError("Invalid input format: please enter a valid hexadecimal number");
     } catch(const std::out_of_range &e) {
-        showError("数值超出范围：仅支持32位指令（0x00000000 ~ 0xFFFFFFFF）");
+        showError("Value out of range: only 32-bit instructions supported (0x00000000 ~ 0xFFFFFFFF)");
     } catch(const std::exception &e) {
-        showError(std::string("解码失败：") + e.what());
+        showError(std::string("Decode failed: ") + e.what());
     } catch(...) {
-        showError("未知错误");
+        showError("Unknown error");
     }
 
     InsEntry_->grab_focus();
@@ -124,7 +123,7 @@ void RISCVInstructionWindow::showInsResult(Instruction &inst)
         showError("err inst type!");
         break;
     }
-    uint32_t val = static_cast<uint32_t>(inst);
+    uint32_t val= static_cast<uint32_t>(inst);
     std::ostringstream oss;
     oss << "Hexadecimal   = 0x" << getHexStr(val) << "\n";
     oss << "Format          = " << std::hex << inst.GetFormat() << '\n';
@@ -145,7 +144,7 @@ void RISCVInstructionWindow::showError(const std::string &message)
 {
     auto buffer= InsTextView_->get_buffer();
     if(buffer) {
-        buffer->set_text("错误: " + message);
+        buffer->set_text("Error: " + message);
     }
     std::cerr << "Error: " << message;
 }

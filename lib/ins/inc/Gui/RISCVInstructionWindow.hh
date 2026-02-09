@@ -8,7 +8,7 @@
 #include "Core/Instruction.hh"
 #include "Gui/InstFormatUI.hh"
 
-class RISCVInstructionWindow : public Gtk::Window {
+class RISCVInstructionWindow: public Gtk::Window {
 public:
     Gtk::Box *uiContainer_      = nullptr;
     Gtk::Entry *InsEntry_       = nullptr;
