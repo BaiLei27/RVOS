@@ -10,7 +10,6 @@
 #include <format>
 #include "Core/InstTypeFactory.hh"
 #include "ISA/InstFormat.hh"
-#include "Core/Instruction.hh"
 #include "Gui/RISCVInstructionWindow.hh"
 
 RISCVInstructionWindow::RISCVInstructionWindow() : 
@@ -39,8 +38,21 @@ RISCVInstructionWindow::RISCVInstructionWindow() :
     InsTextView_->set_cursor_visible(false);
     loadCssFromFile(*this);
 
+    initInstFormatUI();
     uiContainer_->append(*InsTextView_);
     set_child(*uiContainer_);
+}
+
+void RISCVInstructionWindow::initInstFormatUI()
+{
+    rTypeUI_= new InstFormatUI(createRTypeFormat());
+    rTypeUI_->set_visible(false);
+    uiContainer_->append(*rTypeUI_);
+}
+
+void RISCVInstructionWindow::hideAllTypeUI()
+{
+    rTypeUI_->hide();
 }
 
 void RISCVInstructionWindow::onInsButtonParseClicked()
@@ -99,12 +111,34 @@ void RISCVInstructionWindow::showInsResult(Instruction &inst)
         std::cerr << "Error: TextView buffer is null.";
         return;
     }
+
+    hideAllTypeUI();
+    InstFormatUI *pCurrUi= nullptr;
+    InstFormat fmt       = inst.GetType().GetInstFormat();
+    switch(fmt) {
+    case InstFormat::R:
+        rTypeUI_->show();
+        pCurrUi= rTypeUI_;
+        break;
+    default:
+        showError("err inst type!");
+        break;
+    }
     uint32_t val = static_cast<uint32_t>(inst);
     std::ostringstream oss;
     oss << "Hexadecimal   = 0x" << getHexStr(val) << "\n";
     oss << "Format          = " << std::hex << inst.GetFormat() << '\n';
     oss << "Instruction set = " << inst.GetXLEN() << "\n";
     buffer->set_text(oss.str());
+
+    if(pCurrUi) {
+        UpdateDisplay(*pCurrUi, inst);
+    }
+}
+
+void RISCVInstructionWindow::UpdateDisplay(InstFormatUI &instUi, Instruction &inst)
+{
+    instUi.UpdateDisplay(inst);
 }
 
 void RISCVInstructionWindow::showError(const std::string &message)
