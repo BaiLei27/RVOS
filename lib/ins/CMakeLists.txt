@@ -138,6 +138,12 @@ target_sources(${backend} PRIVATE
 target_sources(${PROJECT_NAME}_gui PRIVATE
     inc/Gui/InstCommST.hh
 
+    inc/Gui/AsmMnemonicWidget.hh
+    src/Gui/AsmMnemonicWidget.cc
+
+    inc/Gui/BinaryFieldWidget.hh
+    src/Gui/BinaryFieldWidget.cc
+
     inc/Gui/InstFormatUI.hh
     src/Gui/InstFormatUI.cc
 
