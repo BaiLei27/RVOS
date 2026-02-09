@@ -9,7 +9,7 @@ Glib::RefPtr<RISCVApplication> RISCVApplication::Create()
 
 void RISCVApplication::on_activate()
 {
-    auto *pWindow = new RISCVInstructionWindow();
+    auto *pWindow= new RISCVInstructionWindow();
     add_window(*pWindow);
 
     pWindow->signal_close_request().connect([pWindow]() -> bool {

@@ -9,10 +9,15 @@
 #include "Gui/InstCommST.hh"
 #include "ISA/InstFormat.hh"
 #include "Core/Instruction.hh"
+#include "Gui/BinaryFieldWidget.hh"
+#include "Gui/AsmMnemonicWidget.hh"
+#include "Gui/InstCommST.hh"
 
 class InstFormatUI: public Gtk::Box {
 public:
     S_InstTypeRelationEntity_t format_;
+    InstCommST::BinaryFieldWidgetMap_u BinaryFieldWidgets_;
+    InstCommST::AsmMnemonicWidgetMap_u AsmFieldWidgets_;
     explicit InstFormatUI(const S_InstTypeRelationEntity_t &format);
     void UpdateDisplay(Instruction &inst);
 

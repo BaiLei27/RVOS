@@ -12,10 +12,9 @@
 #include "ISA/InstFormat.hh"
 #include "Gui/RISCVInstructionWindow.hh"
 
-RISCVInstructionWindow::RISCVInstructionWindow() : 
-    InsEntry_(Gtk::make_managed<Gtk::Entry>()) , 
-    InsButtonParse_(Gtk::make_managed<Gtk::Button>("解析指令")) ,
-    uiContainer_(Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 10))
+RISCVInstructionWindow::RISCVInstructionWindow(): InsEntry_(Gtk::make_managed<Gtk::Entry>()),
+                                                  InsButtonParse_(Gtk::make_managed<Gtk::Button>("解析指令")),
+                                                  uiContainer_(Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 10))
 {
     set_title("RISC-V Instruction Encoder/Decoder");
     set_default_size(900, 300);
@@ -124,7 +123,7 @@ void RISCVInstructionWindow::showInsResult(Instruction &inst)
         showError("err inst type!");
         break;
     }
-    uint32_t val = static_cast<uint32_t>(inst);
+    uint32_t val= static_cast<uint32_t>(inst);
     std::ostringstream oss;
     oss << "Hexadecimal   = 0x" << getHexStr(val) << "\n";
     oss << "Format          = " << std::hex << inst.GetFormat() << '\n';
