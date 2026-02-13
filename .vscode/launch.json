@@ -1,0 +1,42 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cppdbg",
+            "request": "launch",
+            "name": "Debug INST",
+            "program": "${workspaceFolder}/build-x86_64/build-INST/INST.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/build-x86_64/build-INST",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "gdb",
+            "setupCommands": [
+                {
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": false
+                },
+                {
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": false
+                },
+                {
+                    "text": "-gdb-set output-radix 16",
+                    "ignoreFailures": false
+                },
+                {
+                    "text": "-interpreter-exec console \"skip -rfu std::.*\"",
+                    "ignoreFailures": false
+                },
+                {
+                    "text": "-interpreter-exec console \"skip -gfi */include/c++/v1/*\"",
+                    "ignoreFailures": false
+                }
+            ],
+        }
+    ],
+    // "preLaunchTask": "${command:cmake.build}"
+}
