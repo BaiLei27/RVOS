@@ -1,5 +1,7 @@
-
+#include <string>
 #include "Core/IBaseInstType.hh"
+// #include <iostream>
+
 // #include <iostream>
 
 // IBaseInstType::IBaseInstType(uint16_t opcode, bool hasSetABI)
@@ -23,6 +25,8 @@ IBaseInstType::IBaseInstType(std::vector<std::string> instAssembly,
 const InstLayout &IBaseInstType::GetInstLayout() const noexcept { return Layout_; }
 
 const std::vector<std::string> &IBaseInstType::GetInstAssembly() const noexcept { return InstAssembly_; }
+
+const std::vector<uint32_t> &IBaseInstType::GetInstBitsField() const noexcept { return InstBitsField_; }
 
 uint16_t IBaseInstType::GetInstOpcode() const noexcept { return Opcode_; }
 

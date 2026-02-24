@@ -6,8 +6,8 @@
 class RType: public IBaseInstType {
 public:
     constexpr static std::array<InstInfo, 32> G_INST_TABLE= {
-        { { .name_= "add", .XLEN_= "RV32I", .funct_= 0x0000, .opcode_= 0x33 },
-         { .name_= "sub", .XLEN_= "RV32I", .funct_= 0x0100, .opcode_= 0x33 } }
+        { { .name_="add", .XLEN_="RV32I", .funct_=0x0000, .opcode_=0x33 },
+         { .name_="sub", .XLEN_="RV32I", .funct_=0x0100, .opcode_=0x33 } }
     };
 
 public:
