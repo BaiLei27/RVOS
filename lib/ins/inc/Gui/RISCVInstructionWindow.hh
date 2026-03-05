@@ -39,6 +39,7 @@ private:
     void hideAllTypeUI();
     void UpdateDisplay(InstFormatUI &instUi, Instruction &inst);
     void setupSettingsPopover();
+    void refreshAssemblyForAbiChange();
 };
 
 #endif // RISCV_INSTRUCTION_WINDOW_HH
