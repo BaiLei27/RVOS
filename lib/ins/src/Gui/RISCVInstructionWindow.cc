@@ -56,8 +56,8 @@ void RISCVInstructionWindow::initInstFormatUI()
     rTypeUI_= new InstFormatUI(createRTypeFormat());
     rTypeUI_->set_visible(false);
     rTypeUI_->signal_put_to_output.connect([this](const std::string &content) {
-        if(InsTextView_ && InsTextView_->get_buffer()) {
-            InsTextView_->get_buffer()->set_text(content);
+        if(InsEntry_ && InsEntry_->get_buffer()) {
+            InsEntry_->get_buffer()->set_text(content);
         }
     });
     uiContainer_->append(*rTypeUI_);
@@ -157,6 +157,19 @@ void RISCVInstructionWindow::showError(const std::string &message)
     std::cerr << "Error: " << message;
 }
 
+void RISCVInstructionWindow::refreshAssemblyForAbiChange()
+{
+    if(!pInst_) {
+        return;
+    }
+    uint32_t val= static_cast<uint32_t>(*pInst_);
+    delete pInst_;
+    pInst_= new Instruction(val, hasSetABI_);
+    if(pInst_->Decode()) {
+        showInsResult(*pInst_);
+    }
+}
+
 void RISCVInstructionWindow::setupSettingsPopover()
 {
     pSettingsPopover_= Gtk::make_managed<Gtk::Popover>();
@@ -177,6 +190,7 @@ void RISCVInstructionWindow::setupSettingsPopover()
     pAbiSwitch_->set_halign(Gtk::Align::END);
     pAbiSwitch_->property_active().signal_changed().connect([this] {
         hasSetABI_= pAbiSwitch_->get_active();
+        refreshAssemblyForAbiChange();
     });
     pAbiRow->append(*pAbiSwitch_);
     pPopoverBox->append(*pAbiRow);
