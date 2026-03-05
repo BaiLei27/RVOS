@@ -1,16 +1,54 @@
+#include <functional>
+#include <gdkmm.h>
 #include "Gui/InstFormatUI.hh"
+
+static void appendCopyAndToViewButtons(Gtk::Box &row, InstFormatUI *pUI,
+                                       const std::function<std::string()> &getContent)
+{
+    auto pSpacer = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 0);
+    pSpacer->set_hexpand(true);
+
+    auto pCopyBtn  = Gtk::make_managed<Gtk::Button>("Copy");
+    auto pToViewBtn= Gtk::make_managed<Gtk::Button>("To View");
+    pCopyBtn->set_margin_start(8);
+    pToViewBtn->set_margin_start(4);
+
+    pCopyBtn->signal_clicked().connect([getContent] {
+        auto content = getContent();
+        if(!content.empty()) {
+            if(auto display = Gdk::Display::get_default()) {
+                if(auto clipboard = display->get_clipboard()) {
+                    clipboard->set_text(Glib::ustring(content));
+                }
+            }
+        }
+    });
+
+    pToViewBtn->signal_clicked().connect([pUI, getContent] {
+        auto content = getContent();
+        if(!content.empty()) {
+            pUI->signal_put_to_output.emit(content);
+        }
+    });
+
+    row.append(*pSpacer);
+    row.append(*pCopyBtn);
+    row.append(*pToViewBtn);
+}
 
 InstFormatUI::InstFormatUI(const InstTypeRelationEntity &format)
     : Gtk::Box(Gtk::Orientation::VERTICAL, 10), format_(format)
 {
     setupAssemblyDisplay();
     setupBinaryDisplay();
+    setupHexDisplay();
     setupFieldControllers();
 }
 
 void InstFormatUI::setupAssemblyDisplay()
 {
     auto pAsmArea = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 0);
+    pAsmArea->set_hexpand(true);
     auto pAsmTitle= Gtk::make_managed<Gtk::Label>("Assembly =");
     pAsmTitle->set_margin_end(8);
     pAsmArea->append(*pAsmTitle);
@@ -22,6 +60,7 @@ void InstFormatUI::setupAssemblyDisplay()
         AsmFieldWidgets_[iStr]= pAsmMnemonic;
     }
 
+    appendCopyAndToViewButtons(*pAsmArea, this, [this] { return getAssemblyContent(); });
     append(*pAsmArea);
 }
 
@@ -31,9 +70,9 @@ void InstFormatUI::setupBinaryDisplay()
     auto pBinaryTitle= Gtk::make_managed<Gtk::Label>("Binary =");
     pBinaryTitle->set_margin_end(8);
     pBinaryArea->append(*pBinaryTitle);
-    pBinaryArea->set_halign(Gtk::Align::START);
+    pBinaryArea->set_halign(Gtk::Align::FILL);
     pBinaryArea->set_valign(Gtk::Align::CENTER);
-    pBinaryArea->set_hexpand(false);
+    pBinaryArea->set_hexpand(true);
 
     for(const auto &binaryElem: format_.binaryV_) {
         BinaryFieldWidget *pTmpBinaryField   = new BinaryFieldWidget(BinaryLabelsV_, binaryElem);
@@ -41,7 +80,24 @@ void InstFormatUI::setupBinaryDisplay()
         pBinaryArea->append(*pTmpBinaryField->mBox_);
     }
 
+    appendCopyAndToViewButtons(*pBinaryArea, this, [this] { return getBinaryContent(); });
     append(*pBinaryArea);
+}
+
+void InstFormatUI::setupHexDisplay()
+{
+    auto pHexArea = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 0);
+    pHexArea->set_hexpand(true);
+    auto pHexTitle= Gtk::make_managed<Gtk::Label>("Hexadecimal =");
+    pHexTitle->set_margin_end(8);
+    pHexArea->append(*pHexTitle);
+
+    pHexLabel_ = Gtk::make_managed<Gtk::Label>("0x00000000");
+    pHexLabel_->set_margin_end(8);
+    pHexArea->append(*pHexLabel_);
+
+    appendCopyAndToViewButtons(*pHexArea, this, [this] { return getHexContent(); });
+    append(*pHexArea);
 }
 
 void InstFormatUI::setupFieldControllers()
@@ -59,6 +115,7 @@ void InstFormatUI::UpdateDisplay(Instruction &inst)
 {
     updateAssemblyDisplay(inst);
     updateBinaryDisplay(inst);
+    updateHexDisplay(inst);
 }
 
 void InstFormatUI::updateRTypeDisplay(Instruction &inst)
@@ -102,6 +159,64 @@ void InstFormatUI::updateAssemblyDisplay(Instruction &inst)
     if(pInstType->GetInstFormat() == InstFormat::R) {
         updateRTypeDisplay(inst);
     }
+}
+
+inline std::string getHexStr(uint32_t val)
+{
+    return std::format("{:08x}", val);
+}
+
+void InstFormatUI::updateHexDisplay(Instruction &inst)
+{
+    if(inst.GetTypePtr() == nullptr) {
+        return;
+    }
+
+    uint32_t val= static_cast<uint32_t>(inst);
+    pHexLabel_->set_text("0x" + getHexStr(val));
+}
+
+std::string InstFormatUI::getAssemblyContent() const
+{
+    std::string result;
+    for(const std::string &key: format_.instTypeV_) {
+        if(key == ",") {
+            result += ", ";
+            continue;
+        }
+        auto it = AsmFieldWidgets_.find(key);
+        if(it != AsmFieldWidgets_.end() && it->second->mLabel_) {
+            result += it->second->mLabel_->get_text().raw();
+            if(key == "mnemonic") {
+                result += " ";
+            }
+        }
+    }
+    return result;
+}
+
+std::string InstFormatUI::getBinaryContent() const
+{
+    std::string result;
+    for(const auto &elem: format_.binaryV_) {
+        auto it = BinaryFieldWidgets_.find(elem.name_);
+        if(it != BinaryFieldWidgets_.end()) {
+            for(auto *label: it->second->controlLabels_) {
+                if(label) {
+                    result += label->get_text().raw();
+                }
+            }
+        }
+    }
+    return result;
+}
+
+std::string InstFormatUI::getHexContent() const
+{
+    if(pHexLabel_) {
+        return std::string(pHexLabel_->get_text().raw());
+    }
+    return {};
 }
 
 InstTypeRelationEntity createRTypeFormat()
