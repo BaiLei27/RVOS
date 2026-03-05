@@ -28,7 +28,8 @@ RISCVInstructionWindow::RISCVInstructionWindow(): InsEntry_(Gtk::make_managed<Gt
     pEntryRow_= Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 4);
     pEntryRow_->append(*InsEntry_);
 
-    pSettingsBtn_= Gtk::make_managed<Gtk::Button>("\u22EE");
+    pSettingsBtn_= Gtk::make_managed<Gtk::Button>();
+    pSettingsBtn_->set_icon_name("view-more-symbolic");
     pSettingsBtn_->set_tooltip_text("ABI / ISA settings");
     setupSettingsPopover();
     pEntryRow_->append(*pSettingsBtn_);
@@ -207,6 +208,11 @@ void RISCVInstructionWindow::setupSettingsPopover()
     pIsaDropDown_->set_selected(0);
     pIsaDropDown_->set_hexpand(true);
     pIsaDropDown_->set_halign(Gtk::Align::END);
+    pIsaDropDown_->property_selected().signal_changed().connect([this] {
+        // Close settings popover when ISA is selected; avoids nested DropDown
+        // popover staying open (GTK4 popover-inside-popover behavior)
+        pSettingsPopover_->popdown();
+    });
     pIsaRow->append(*pIsaDropDown_);
     pPopoverBox->append(*pIsaRow);
 
