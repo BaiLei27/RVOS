@@ -22,11 +22,20 @@ RISCVInstructionWindow::RISCVInstructionWindow(): InsEntry_(Gtk::make_managed<Gt
     uiContainer_->set_margin(15);
 
     InsEntry_->set_placeholder_text("Enter instruction");
+    InsEntry_->set_hexpand(true);
     InsEntry_->signal_activate().connect(sigc::mem_fun(*this, &RISCVInstructionWindow::onInsButtonParseClicked));
+
+    pEntryRow_= Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 4);
+    pEntryRow_->append(*InsEntry_);
+
+    pSettingsBtn_= Gtk::make_managed<Gtk::Button>("\u22EE");
+    pSettingsBtn_->set_tooltip_text("ABI / ISA settings");
+    setupSettingsPopover();
+    pEntryRow_->append(*pSettingsBtn_);
 
     InsButtonParse_->signal_clicked().connect(sigc::mem_fun(*this, &RISCVInstructionWindow::onInsButtonParseClicked));
 
-    uiContainer_->append(*InsEntry_);
+    uiContainer_->append(*pEntryRow_);
     uiContainer_->append(*InsButtonParse_);
 
     InsTextView_= Gtk::make_managed<Gtk::TextView>();
@@ -46,6 +55,11 @@ void RISCVInstructionWindow::initInstFormatUI()
 {
     rTypeUI_= new InstFormatUI(createRTypeFormat());
     rTypeUI_->set_visible(false);
+    rTypeUI_->signal_put_to_output.connect([this](const std::string &content) {
+        if(InsTextView_ && InsTextView_->get_buffer()) {
+            InsTextView_->get_buffer()->set_text(content);
+        }
+    });
     uiContainer_->append(*rTypeUI_);
 }
 
@@ -76,7 +90,7 @@ void RISCVInstructionWindow::onInsButtonParseClicked()
             throw std::out_of_range("instruction value out of 32-bit range");
         }
         uint32_t instructionNum= static_cast<uint32_t>(value);
-        pInst_                 = new Instruction(instructionNum);
+        pInst_                 = new Instruction(instructionNum, hasSetABI_);
         if(pInst_ == nullptr) {
             throw std::invalid_argument("Failed to create instruction instance");
         }
@@ -96,11 +110,6 @@ void RISCVInstructionWindow::onInsButtonParseClicked()
     }
 
     InsEntry_->grab_focus();
-}
-
-inline std::string getHexStr(uint32_t val)
-{
-    return std::format("{:08x}", val);
 }
 
 void RISCVInstructionWindow::showInsResult(Instruction &inst)
@@ -123,9 +132,8 @@ void RISCVInstructionWindow::showInsResult(Instruction &inst)
         showError("err inst type!");
         break;
     }
-    uint32_t val= static_cast<uint32_t>(inst);
+
     std::ostringstream oss;
-    oss << "Hexadecimal   = 0x" << getHexStr(val) << "\n";
     oss << "Format          = " << std::hex << inst.GetFormat() << '\n';
     oss << "Instruction set = " << inst.GetXLEN() << "\n";
     buffer->set_text(oss.str());
@@ -147,6 +155,51 @@ void RISCVInstructionWindow::showError(const std::string &message)
         buffer->set_text("Error: " + message);
     }
     std::cerr << "Error: " << message;
+}
+
+void RISCVInstructionWindow::setupSettingsPopover()
+{
+    pSettingsPopover_= Gtk::make_managed<Gtk::Popover>();
+    pSettingsPopover_->set_has_arrow(true);
+    pSettingsPopover_->set_parent(*pSettingsBtn_);
+
+    auto pPopoverBox= Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 12);
+    pPopoverBox->set_margin(12);
+
+    // ABI row: label + switch
+    auto pAbiRow  = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 8);
+    auto pAbiLabel= Gtk::make_managed<Gtk::Label>("ABI");
+    pAbiLabel->set_halign(Gtk::Align::START);
+    pAbiRow->append(*pAbiLabel);
+
+    pAbiSwitch_= Gtk::make_managed<Gtk::Switch>();
+    pAbiSwitch_->set_active(hasSetABI_);
+    pAbiSwitch_->set_halign(Gtk::Align::END);
+    pAbiSwitch_->property_active().signal_changed().connect([this] {
+        hasSetABI_= pAbiSwitch_->get_active();
+    });
+    pAbiRow->append(*pAbiSwitch_);
+    pPopoverBox->append(*pAbiRow);
+
+    // ISA row: label + dropdown
+    auto pIsaRow  = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 8);
+    auto pIsaLabel= Gtk::make_managed<Gtk::Label>("ISA");
+    pIsaLabel->set_halign(Gtk::Align::START);
+    pIsaRow->append(*pIsaLabel);
+
+    const std::vector<Glib::ustring> isaOpts{"AUTO", "RV32I", "RV64I", "RV128I"};
+    auto isaList= Gtk::StringList::create(isaOpts);
+    pIsaDropDown_= Gtk::make_managed<Gtk::DropDown>(isaList);
+    pIsaDropDown_->set_selected(0);
+    pIsaDropDown_->set_hexpand(true);
+    pIsaDropDown_->set_halign(Gtk::Align::END);
+    pIsaRow->append(*pIsaDropDown_);
+    pPopoverBox->append(*pIsaRow);
+
+    pSettingsPopover_->set_child(*pPopoverBox);
+    pSettingsBtn_->signal_clicked().connect([this] {
+        pSettingsPopover_->popup();
+    });
 }
 
 void RISCVInstructionWindow::loadCssFromFile(Gtk::Window &window)
