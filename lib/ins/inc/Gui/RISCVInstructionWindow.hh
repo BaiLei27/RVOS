@@ -10,12 +10,20 @@
 
 class RISCVInstructionWindow: public Gtk::Window {
 public:
-    Gtk::Box *uiContainer_      = nullptr;
-    Gtk::Entry *InsEntry_       = nullptr;
-    Gtk::Button *InsButtonParse_= nullptr;
-    Gtk::TextView *InsTextView_ = nullptr;
-    Instruction *pInst_         = nullptr;
-    InstFormatUI *rTypeUI_      = nullptr;
+    Gtk::Box *uiContainer_       = nullptr;
+    Gtk::Box *pEntryRow_         = nullptr;
+    Gtk::Entry *InsEntry_        = nullptr;
+    Gtk::Button *pSettingsBtn_   = nullptr;
+    Gtk::Popover *pSettingsPopover_ = nullptr;
+    Gtk::Switch *pAbiSwitch_     = nullptr;
+    Gtk::DropDown *pIsaDropDown_ = nullptr;
+    Gtk::Button *InsButtonParse_ = nullptr;
+    Gtk::TextView *InsTextView_  = nullptr;
+    Instruction *pInst_          = nullptr;
+    InstFormatUI *rTypeUI_       = nullptr;
+
+    bool hasSetABI_              = false;
+    int selectedIsaIndex_       = 0;  // 0=AUTO, 1=RV32I, 2=RV64I, 3=RV128I
 
 public:
     RISCVInstructionWindow();
@@ -30,6 +38,7 @@ private:
     void initInstFormatUI();
     void hideAllTypeUI();
     void UpdateDisplay(InstFormatUI &instUi, Instruction &inst);
+    void setupSettingsPopover();
 };
 
 #endif // RISCV_INSTRUCTION_WINDOW_HH
