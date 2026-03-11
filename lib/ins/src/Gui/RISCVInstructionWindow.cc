@@ -1,13 +1,16 @@
 #include <gtkmm.h>
+#include <cctype>
+#include <exception>
+#include <format>
+#include <iomanip>
 #include <iostream>
 #include <map>
-#include <exception>
+#include <ranges>
+#include <sstream>
+#include <string_view>
+#include <cassert>
 #include <cstdlib>
 #include <ctime>
-#include <cassert>
-#include <sstream>
-#include <iomanip>
-#include <format>
 #include "Core/InstTypeFactory.hh"
 #include "ISA/InstFormat.hh"
 #include "Gui/RISCVInstructionWindow.hh"
@@ -21,7 +24,7 @@ RISCVInstructionWindow::RISCVInstructionWindow(): InsEntry_(Gtk::make_managed<Gt
 
     uiContainer_->set_margin(15);
 
-    InsEntry_->set_placeholder_text("Enter instruction");
+    InsEntry_->set_placeholder_text("Hex (0x33), binary (0b110011 or 32 bits), or assembly (add x0,x0,x0)");
     InsEntry_->set_hexpand(true);
     InsEntry_->signal_activate().connect(sigc::mem_fun(*this, &RISCVInstructionWindow::onInsButtonParseClicked));
 
@@ -69,29 +72,76 @@ void RISCVInstructionWindow::hideAllTypeUI()
     rTypeUI_->hide();
 }
 
+static bool looksLikeHex(std::string_view s)
+{
+    if(s.empty()) return false;
+    size_t start= 0;
+    if(s.size() >= 2 && (s.substr(0, 2) == "0x" || s.substr(0, 2) == "0X")) {
+        start= 2;
+    }
+    if(start >= s.size()) return false;
+    return std::ranges::all_of(s.substr(start), [](unsigned char c) { return std::isxdigit(c); });
+}
+
+static bool looksLikeBinary(std::string_view s)
+{
+    if(s.empty()) return false;
+    std::string_view digits;
+    if(s.size() >= 2 && (s.substr(0, 2) == "0b" || s.substr(0, 2) == "0B")) {
+        digits= s.substr(2);
+    } else {
+        // No prefix: treat as binary only if all 0/1 and length >= 1 (avoids conflict with short hex like "ff", "33")
+        digits= s;
+        if(digits.size() < 2) return false;
+    }
+    if(digits.empty() || digits.size() > 32) return false;
+    return std::ranges::all_of(digits, [](unsigned char c) { return c == '0' || c == '1'; });
+}
+
+static std::string_view getBinaryDigits(std::string_view s)
+{
+    if(s.size() >= 2 && (s.substr(0, 2) == "0b" || s.substr(0, 2) == "0B")) {
+        return s.substr(2);
+    }
+    return s;
+}
+
 void RISCVInstructionWindow::onInsButtonParseClicked()
 {
-    int ret    = 0;
-    auto hexStr= InsEntry_->get_text();
-    if(hexStr.empty()) {
-        showError("Please enter a valid hexadecimal instruction");
+    int ret   = 0;
+    auto text= InsEntry_->get_text();
+    if(text.empty()) {
+        showError("Please enter hex (0x33), binary (0b110011), or assembly (e.g. add x0,x0,x0)");
         return;
     }
 
+    std::string inputStr(text);
+
     try {
-        std::string cleanStr= hexStr;
-        if(cleanStr.size() >= 2 && (cleanStr.substr(0, 2) == "0x" || cleanStr.substr(0, 2) == "0X")) {
-            cleanStr= cleanStr.substr(2);
+        // Check binary before hex: "000...00110011" (all 0/1, len>=8) is binary; "0x33" stays hex
+        if(looksLikeBinary(inputStr)) {
+            std::string cleanStr(getBinaryDigits(inputStr));
+            uint64_t value= std::stoull(cleanStr, nullptr, 2);
+            if(value > 0xFFFFFFFFULL) {
+                throw std::out_of_range("instruction value out of 32-bit range");
+            }
+            uint32_t instructionNum= static_cast<uint32_t>(value);
+            pInst_                 = new Instruction(instructionNum, hasSetABI_);
+        } else if(looksLikeHex(inputStr)) {
+            std::string cleanStr= inputStr;
+            if(cleanStr.size() >= 2 && (cleanStr.substr(0, 2) == "0x" || cleanStr.substr(0, 2) == "0X")) {
+                cleanStr= cleanStr.substr(2);
+            }
+            uint64_t value= std::stoull(cleanStr, nullptr, 16);
+            if(value > 0xFFFFFFFFULL) {
+                throw std::out_of_range("instruction value out of 32-bit range");
+            }
+            uint32_t instructionNum= static_cast<uint32_t>(value);
+            pInst_                 = new Instruction(instructionNum, hasSetABI_);
+        } else {
+            pInst_= new Instruction(inputStr, hasSetABI_);
         }
 
-        uint64_t value= 0;
-        value         = std::stoull(cleanStr, nullptr, 16);
-
-        if(value > 0xFFFFFFFFULL) {
-            throw std::out_of_range("instruction value out of 32-bit range");
-        }
-        uint32_t instructionNum= static_cast<uint32_t>(value);
-        pInst_                 = new Instruction(instructionNum, hasSetABI_);
         if(pInst_ == nullptr) {
             throw std::invalid_argument("Failed to create instruction instance");
         }
@@ -101,7 +151,7 @@ void RISCVInstructionWindow::onInsButtonParseClicked()
         }
         showInsResult(*pInst_);
     } catch(const std::invalid_argument &e) {
-        showError("Invalid input format: please enter a valid hexadecimal number");
+        showError(std::string("Invalid input: ") + e.what());
     } catch(const std::out_of_range &e) {
         showError("Value out of range: only 32-bit instructions supported (0x00000000 ~ 0xFFFFFFFF)");
     } catch(const std::exception &e) {
