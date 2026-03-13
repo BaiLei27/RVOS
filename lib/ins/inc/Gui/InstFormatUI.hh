@@ -45,8 +45,10 @@ protected:
 
 private:
     void updateRTypeDisplay(Instruction &inst);
+    void updateITypeDisplay(Instruction &inst);
 };
 
 InstTypeRelationEntity createRTypeFormat();
+InstTypeRelationEntity createITypeFormat();
 
 #endif // INSTFORMATUI_HH_

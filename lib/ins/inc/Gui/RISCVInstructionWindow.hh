@@ -21,6 +21,7 @@ public:
     Gtk::TextView *InsTextView_  = nullptr;
     Instruction *pInst_          = nullptr;
     InstFormatUI *rTypeUI_       = nullptr;
+    InstFormatUI *iTypeUI_       = nullptr;
 
     bool hasSetABI_              = false;
     int selectedIsaIndex_       = 0;  // 0=AUTO, 1=RV32I, 2=RV64I, 3=RV128I

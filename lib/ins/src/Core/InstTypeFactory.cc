@@ -2,6 +2,7 @@
 
 #include "Core/InstTypeFactory.hh"
 #include "Core/RType.hh"
+#include "Core/IType.hh"
 
 std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(uint32_t inst, bool hasSetABI)
 {
@@ -11,13 +12,14 @@ std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(uint32_t inst, bool h
         switch(it->second) {
         case InstFormat::R:
             return std::make_unique<RType>(inst, it->second, hasSetABI);
+        case InstFormat::I:
+            return std::make_unique<IType>(inst, it->second, hasSetABI);
         default:
             std::cout << "Unsupported instruction format\n";
         }
     }
 
     return nullptr;
-    // return createHelper(opcode, hasSetABI);
 }
 
 std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(std::vector<std::string> &instAssembly, bool hasSetABI)
@@ -29,13 +31,12 @@ std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(std::vector<std::stri
         switch(it->second) {
         case InstFormat::R:
             return std::make_unique<RType>(std::move(instAssembly), it->second, hasSetABI);
-
+        case InstFormat::I:
+            return std::make_unique<IType>(std::move(instAssembly), it->second, hasSetABI);
         default:
             std::cout << "Unsupported instruction format\n";
         }
     }
-    // return createHelper(instName, hasSetABI);
-    // std::make_unique<RType>(instName, hasSetABI);
     std::cout << "Unsupported instruction name: " << instAssembly[0] << '\n';
 
     return nullptr;
@@ -63,7 +64,12 @@ std::optional<uint16_t> InstTypeFactory::matchInstOpcode(std::string_view instNa
 {
     for(const auto &entry: RType::G_INST_TABLE) {
         if(entry.name_ == instName) {
-            return std::make_optional(entry.opcode_); // get opcode
+            return std::make_optional(entry.opcode_);
+        }
+    }
+    for(const auto &entry: IType::G_INST_TABLE) {
+        if(entry.name_ == instName) {
+            return std::make_optional(entry.opcode_);
         }
     }
 
