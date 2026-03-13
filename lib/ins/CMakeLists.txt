@@ -144,6 +144,9 @@ target_sources(${backend} PRIVATE
     inc/Core/RType.hh
     src/Core/RType.cc
 
+    inc/Core/IType.hh
+    src/Core/IType.cc
+
     inc/Core/InstTypeFactory.hh
     src/Core/InstTypeFactory.cc
 

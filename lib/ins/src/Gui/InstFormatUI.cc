@@ -126,13 +126,33 @@ void InstFormatUI::updateRTypeDisplay(Instruction &inst)
     int size                                    = 0;
     const std::vector<std::string> &instAssembly= inst.GetTypePtr()->GetInstAssembly();
     size                                        = format_.instTypeV_.size();
-    for(int i= 0, j= 0; i < size; i++) {
+    for(int i= 0, j= 0; i < size; ++i) {
         if(format_.instTypeV_[i] == ",")
             continue;
         if(instAssembly.at(j) == " " || instAssembly.at(j) == ",") {
             j++;
         }
         AsmFieldWidgets_[format_.instTypeV_[i]]->mLabel_->set_text(instAssembly.at(j++));
+    }
+}
+
+void InstFormatUI::updateITypeDisplay(Instruction &inst)
+{
+    if(inst.GetTypePtr() == nullptr) {
+        return;
+    }
+    int size                                    = 0;
+    const std::vector<std::string> &instAssembly= inst.GetTypePtr()->GetInstAssembly();
+    size                                        = format_.instTypeV_.size();
+    for(int i= 0, j= 0; i < size; ++i) {
+        if(format_.instTypeV_[i] == ",")
+            continue;
+        if(j < static_cast<int>(instAssembly.size()) && (instAssembly.at(j) == " " || instAssembly.at(j) == ",")) {
+            j++;
+        }
+        if(j < static_cast<int>(instAssembly.size())) {
+            AsmFieldWidgets_[format_.instTypeV_[i]]->mLabel_->set_text(instAssembly.at(j++));
+        }
     }
 }
 
@@ -158,6 +178,8 @@ void InstFormatUI::updateAssemblyDisplay(Instruction &inst)
     }
     if(pInstType->GetInstFormat() == InstFormat::R) {
         updateRTypeDisplay(inst);
+    } else if(pInstType->GetInstFormat() == InstFormat::I) {
+        updateITypeDisplay(inst);
     }
 }
 
@@ -251,4 +273,36 @@ InstTypeRelationEntity createRTypeFormat()
     };
 
     return rFormat;
+}
+
+InstTypeRelationEntity createITypeFormat()
+{
+    InstTypeRelationEntity iFormat;
+
+    iFormat.typeName_ = "I-Type";
+    iFormat.fmt_      = InstFormat::I;
+    iFormat.instTypeV_= { "mnemonic", "rd", ",", "rs1", ",", "imm" };
+    iFormat.binaryV_  = {
+        { "imm",    20, 31, "imm[11:0]" },
+        { "rs1",    15, 19, "rs1"       },
+        { "funct3", 12, 14, "funct3"    },
+        { "rd",     7,  11, "rd"        },
+        { "opcode", 0,  6,  "opcode"    },
+    };
+
+    iFormat.binaryFieldRelations_= {
+        { "opcode", { "mnemonic", "funct3", "imm" } },
+        { "funct3", { "mnemonic", "opcode", "imm" } },
+        { "imm",    { "mnemonic", "opcode", "funct3" } },
+        { "rd",     { "rd" }                           },
+        { "rs1",    { "rs1" }                          },
+    };
+    iFormat.asmFieldRelations= {
+        { "mnemonic", { "opcode", "funct3", "imm" } },
+        { "rd",       { "rd" }                     },
+        { "rs1",      { "rs1" }                    },
+        { "imm",      { "imm" }                    },
+    };
+
+    return iFormat;
 }

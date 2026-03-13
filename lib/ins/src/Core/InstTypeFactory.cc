@@ -2,6 +2,7 @@
 
 #include "Core/InstTypeFactory.hh"
 #include "Core/RType.hh"
+#include "Core/IType.hh"
 
 std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(uint32_t inst, bool hasSetABI)
 {
@@ -11,13 +12,14 @@ std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(uint32_t inst, bool h
         switch(it->second) {
         case InstFormat::R:
             return std::make_unique<RType>(inst, it->second, hasSetABI);
+        case InstFormat::I:
+            return std::make_unique<IType>(inst, it->second, hasSetABI);
         default:
             std::cout << "Unsupported instruction format\n";
         }
     }
 
     return nullptr;
-    // return createHelper(opcode, hasSetABI);
 }
 
 const InstTypeFactory::name2FormatOpcode_u &InstTypeFactory::getName2FormatOpcode()

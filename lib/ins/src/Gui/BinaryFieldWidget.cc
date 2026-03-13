@@ -7,7 +7,7 @@ BinaryFieldWidget::BinaryFieldWidget(std::vector<Gtk::Label *> &binaryLabelsV, c
     mBox_->set_margin_start(0);
     mBox_->set_margin_end(0);
     mBox_->set_hexpand(false);
-    for(int i= field.startBit_; i <= field.endBit_; i++) {
+    for(int i= field.startBit_; i <= field.endBit_; ++i) {
         auto pTmpLabel= Gtk::make_managed<Gtk::Label>("0");
         pTmpLabel->set_width_chars(1);
         pTmpLabel->set_halign(Gtk::Align::CENTER);
@@ -90,7 +90,7 @@ void BinaryFieldWidget::SetupController(const std::string &name,
 
 void BinaryFieldWidget::UpdateControlLables(uint32_t instructionValue)
 {
-    for(std::size_t i= 0; i < controlLabels_.size(); i++) {
+    for(std::size_t i= 0; i < controlLabels_.size(); ++i) {
         int bitPosition= controlLabels_.size() - 1 - i;
         int bitValue   = (instructionValue >> bitPosition) & 0x1;
         controlLabels_[i]->set_text(std::to_string(bitValue));
