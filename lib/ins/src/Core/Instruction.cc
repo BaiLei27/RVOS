@@ -25,9 +25,9 @@ Instruction::Instruction(std::string &assembly, bool hasSetABI)
     std::stringstream tmp(assembly);
 
     std::vector<std::string> parts;
-    while(tmp >> parts.emplace_back()) // get inst name;
-        ;
-    // parts.pop_back();
+    for(std::string part; tmp >> part;) {
+        parts.push_back(std::move(part));
+    }
 
     Type_= InstTypeFactory::CreateType(parts, hasSetABI);
 
