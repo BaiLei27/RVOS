@@ -2,7 +2,8 @@
 #include <charconv>
 #include <numeric>
 #include <vector>
-// #include <iostream>
+#include <string>
+
 #include "ISA/Regs.hpp"
 
 namespace isa {
@@ -22,12 +23,13 @@ std::optional<uint16_t> Str2Int(std::string_view target, int base)
     return std::nullopt;
 }
 
-std::optional<uint16_t> LOOKUP_REG_IDX(std::string &target)
+std::optional<uint16_t> LOOKUP_REG_IDX(std::string_view target)
 {
     // std::ranges::transform(target, target.begin(), [](unsigned char c) { return std::tolower(c); });
-
-    // std::cout << target << "\n";
-    target[0]= static_cast<char>(std::tolower(target[0])); // only lower first char
+    std::string lower(target);
+    if(!lower.empty()) {
+        lower[0]= static_cast<char>(std::tolower(lower[0]));
+    }
 #if 0
     if(target.starts_with('x')) { // deal x*
 
@@ -40,20 +42,21 @@ std::optional<uint16_t> LOOKUP_REG_IDX(std::string &target)
             return std::make_optional<uint16_t>(std::distance(G_INDEX_REGS_ABI.begin(), pIt));
         }
 #else
-    if(target.starts_with('x') && CheckIfDigit(target.substr(1), std::isdigit)) {
+    if(lower.starts_with('x') && CheckIfDigit(lower.substr(1), std::isdigit)) {
 
-        if(auto res= Str2Int(target.substr(1), 10); res && *res < 32) {
+        if(auto res= Str2Int(lower.substr(1), 10); res && *res < 32) {
             return res;
         }
 #endif
-    } else if(CheckIfDigit(target, std::isdigit)) {
-        return Str2Int(target, 10);
+        // clang-format off
+    } else if(CheckIfDigit(lower, std::isdigit)) {
+        return Str2Int(lower, 10);
 
-    } else if(target.starts_with("0x") && CheckIfDigit(target.substr(2), std::isxdigit)) {
-        return Str2Int(target.substr(2), 16);
+    } else if(lower.starts_with("0x") && CheckIfDigit(lower.substr(2), std::isxdigit)) {
+        return Str2Int(lower.substr(2), 16);
 
     } else {
-        if("s0" == target || "fp" == target) {
+        if("s0" == lower || "fp" == lower) {
             return std::make_optional<uint16_t>(8);
         }
 
@@ -67,13 +70,13 @@ std::optional<uint16_t> LOOKUP_REG_IDX(std::string &target)
             std::ranges::sort(idx, {}, [](size_t i) { return G_INDEX_REGS_ABI[i].second; });
             return idx;
         }();
-
+        // clang-format on
         auto it= std::ranges::lower_bound(
             S_SORTED_BY_NAME_SECOND,
-            target,
+            lower,
             std::ranges::less {},
             [](size_t i) { return G_INDEX_REGS_ABI[i].second; });
-        if(it != S_SORTED_BY_NAME_SECOND.end() && G_INDEX_REGS_ABI[*it].second == target) {
+        if(it != S_SORTED_BY_NAME_SECOND.end() && G_INDEX_REGS_ABI[*it].second == lower) {
             return std::make_optional<uint16_t>(*it);
         }
     }

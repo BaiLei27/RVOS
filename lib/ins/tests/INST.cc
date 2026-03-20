@@ -16,20 +16,19 @@ int main()
     std::unique_ptr<IBaseInstType> inst1= make_unique<RType>(add, InstFormat::R, true);
     inst1->Disassembly();
     inst1->Parse();
-#elif 00
+#elif 01
 
     auto opt= isa::LOOKUP_REG_NAME(50);
     cout << opt << '\n';
 
-    auto test= [&](std::string name) {
-        auto tmp= name;
+    auto test= [&](std::string_view name) {
         auto idx= isa::LOOKUP_REG_IDX(name);
 
         if(idx) {
-            std::cout << "Lookup '" << tmp
+            std::cout << "Lookup '" << name
                       << "': index = " << *idx << "\n";
         } else {
-            std::cout << "Lookup '" << tmp
+            std::cout << "Lookup '" << name
                       << "': not found\n";
         }
     };

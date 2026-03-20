@@ -69,10 +69,15 @@ const InstLayout &RType::Assembly()
     Layout_.R.fct7        = functKey >> 3;
     Layout_.R.fct3        = functKey & 7;
 
-    if(!InstAssembly_.empty()) {
-        Layout_.R.rd = *isa::LOOKUP_REG_IDX(InstAssembly_.at(1));
-        Layout_.R.rs1= *isa::LOOKUP_REG_IDX(InstAssembly_.at(2));
-        Layout_.R.rs2= *isa::LOOKUP_REG_IDX(InstAssembly_.at(3));
+    if(InstAssembly_.size() >= 4U) {
+        auto rdOpt = isa::LOOKUP_REG_IDX(InstAssembly_.at(1));
+        auto rs1Opt= isa::LOOKUP_REG_IDX(InstAssembly_.at(2));
+        auto rs2Opt= isa::LOOKUP_REG_IDX(InstAssembly_.at(3));
+        if(rdOpt && rs1Opt && rs2Opt) {
+            Layout_.R.rd = *rdOpt;
+            Layout_.R.rs1= *rs1Opt;
+            Layout_.R.rs2= *rs2Opt;
+        }
     }
 
     mnemonicHelper();

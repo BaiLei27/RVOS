@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string_view>
+#include <utility>
+
 #include "Core/IBaseInstType.hh"
 
 class InstTypeFactory {
@@ -15,12 +18,16 @@ private:
         { 0x6F, InstFormat::J }  // J-type: jal
     };
 
+    // name -> (format, opcode), O(1) lookup; built from RType::G_INST_TABLE (and future type tables)
+    using name2FormatOpcode_u= std::unordered_map<std::string_view, std::pair<InstFormat, uint16_t>>;
+
 public:
     static std::unique_ptr<IBaseInstType> CreateType(uint32_t inst, bool hasSetABI= false);
-    static std::unique_ptr<IBaseInstType> CreateType(std::vector<std::string> &instAssembly, bool hasSetABI= false);
+    static std::unique_ptr<IBaseInstType> CreateType(std::vector<std::string> instAssembly, bool hasSetABI= false);
 
 private:
     template <typename T>
     static std::unique_ptr<IBaseInstType> createHelper(T key, bool hasSetABI= false);
-    static std::optional<uint16_t> matchInstOpcode(std::string_view instName);
+    [[nodiscard]] static std::optional<std::pair<InstFormat, uint16_t>> matchInstName(std::string_view instName);
+    static const name2FormatOpcode_u &getName2FormatOpcode();
 };

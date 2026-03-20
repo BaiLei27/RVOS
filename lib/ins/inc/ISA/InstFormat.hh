@@ -3,7 +3,7 @@
 #include <cstdint>
 
 enum class InstFormat : int8_t { // Instruction format enumeration
-    UNKOWN= -1,
+    UNKNOWN= -1,
     R, // Register-Register
     I, // Immediate-Register
     S, // Store instruction

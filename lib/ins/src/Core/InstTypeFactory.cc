@@ -20,23 +20,41 @@ std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(uint32_t inst, bool h
     // return createHelper(opcode, hasSetABI);
 }
 
-std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(std::vector<std::string> &instAssembly, bool hasSetABI)
+const InstTypeFactory::name2FormatOpcode_u &InstTypeFactory::getName2FormatOpcode()
 {
-    auto matchOpc= matchInstOpcode(instAssembly[0]);
+    static const name2FormatOpcode_u OPC_CACHE= [] {
+        name2FormatOpcode_u m;
+        std::cout<< "RType::G_INST_TABLE.size(): " << RType::G_INST_TABLE.size() << '\n';
+        for(const auto &entry: RType::G_INST_TABLE) {
+            if(entry.opcode_ != 0 && !entry.name_.empty()) {
+                m.emplace(entry.name_, std::pair { InstFormat::R, entry.opcode_ });
+            }
+        }
+        return m;
+    }();
+    return OPC_CACHE;
+}
 
-    if(auto it= G_Opcode2Format.find(*matchOpc); matchOpc && it != G_Opcode2Format.end()) {
+std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(std::vector<std::string> instAssembly, bool hasSetABI)
+{
+    if(instAssembly.empty()) {
+        return nullptr;
+    }
 
-        switch(it->second) {
+    auto match= matchInstName(instAssembly[0]);
+
+    if(match) {
+        const auto [fmt, opc]= *match;
+        switch(fmt) {
         case InstFormat::R:
-            return std::make_unique<RType>(std::move(instAssembly), it->second, hasSetABI);
-
+            return std::make_unique<RType>(std::move(instAssembly), fmt, hasSetABI);
         default:
             std::cout << "Unsupported instruction format\n";
+            break;
         }
+    } else {
+        std::cout << "Unsupported instruction name: " << instAssembly[0] << '\n';
     }
-    // return createHelper(instName, hasSetABI);
-    // std::make_unique<RType>(instName, hasSetABI);
-    std::cout << "Unsupported instruction name: " << instAssembly[0] << '\n';
 
     return nullptr;
 }
@@ -59,13 +77,9 @@ std::unique_ptr<IBaseInstType> InstTypeFactory::createHelper(T key, bool hasSetA
     return nullptr;
 }
 
-std::optional<uint16_t> InstTypeFactory::matchInstOpcode(std::string_view instName)
+std::optional<std::pair<InstFormat, uint16_t>> InstTypeFactory::matchInstName(std::string_view instName)
 {
-    for(const auto &entry: RType::G_INST_TABLE) {
-        if(entry.name_ == instName) {
-            return std::make_optional(entry.opcode_); // get opcode
-        }
-    }
-
-    return std::nullopt;
+    const auto &cache= getName2FormatOpcode();
+    auto it          = cache.find(instName);
+    return it != cache.end() ? std::make_optional(it->second) : std::nullopt;
 }

@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <array>
 #include <optional>
-#include <string>
+#include <string_view>
 
 // Fixed-size, compile-time mapping of register index -> (name, ABI)
 namespace isa {
@@ -48,7 +48,7 @@ constexpr std::array<strPair_u, G_REG_NUMBER> G_INDEX_REGS_ABI= {
 };
 
 // static_assert(G_INDEX_REGS_ABI.size() == 32, "G_INDEX_REGS_ABI must contain 32 entries");
-std::optional<uint16_t> LOOKUP_REG_IDX(std::string &target);
+[[nodiscard]] std::optional<uint16_t> LOOKUP_REG_IDX(std::string_view target);
 
 // constexpr accessor: fast O(1) lookup by index at compile time
 constexpr std::optional<strPair_u> PARSE_REG_NAME(size_t idx)

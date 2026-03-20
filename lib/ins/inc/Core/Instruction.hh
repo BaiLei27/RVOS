@@ -1,6 +1,7 @@
 #pragma once
 #include <bitset>
 #include <sstream>
+#include <string_view>
 
 #include "Core/IBaseInstType.hh"
 
@@ -13,7 +14,7 @@ private:
 
 public:
     explicit Instruction(uint32_t inst, bool hasSetABI= false);
-    explicit Instruction(std::string &assembly, bool hasSetABI= false);
+    explicit Instruction(std::string_view assembly, bool hasSetABI= false);
     // explicit Instruction(std::stringstream assembly, bool hasSetABI= false);
     Instruction(const Instruction &)            = delete;
     Instruction &operator= (const Instruction &)= delete;
@@ -30,6 +31,7 @@ public:
     const std::bitset<32> &GetBitField() const;
 
     [[nodiscard]] std::string GetHexStr() const;
+    [[nodiscard]] std::string GetBinStr() const;
     [[nodiscard]] std::string_view GetXLEN() const;
     [[nodiscard]] std::string_view GetManual() const;
     [[nodiscard]] std::string_view GetFormat() const noexcept;

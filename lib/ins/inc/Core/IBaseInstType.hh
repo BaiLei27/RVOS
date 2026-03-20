@@ -26,7 +26,7 @@ protected:
     std::optional<BiLookupTable<KeyT>::NameInfo> NameAndXlenCache_;
     std::vector<std::string> InstAssembly_;
     std::string BaseURL_ { R"(https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/)" };
-    InstFormat Format_ { InstFormat::UNKOWN };
+    InstFormat Format_ { InstFormat::UNKNOWN };
     InstLayout Layout_;
     uint16_t Opcode_ {};
     KeyT FunctKey_ { 0xffff };

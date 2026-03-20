@@ -1,9 +1,11 @@
+#include <format>
 #include <iostream>
 #include <algorithm>
 #include <array>
 
 #include "Core/Instruction.hh"
 #include "Core/InstTypeFactory.hh"
+#include "ISA/InstFormat.hh"
 
 Instruction::Instruction(uint32_t inst, bool hasSetABI)
     : Type_(InstTypeFactory::CreateType(inst, hasSetABI)),
@@ -18,24 +20,22 @@ Instruction::Instruction(uint32_t inst, bool hasSetABI)
     }
 }
 
-Instruction::Instruction(std::string &assembly, bool hasSetABI)
-    : Disassembly_(assembly)
+Instruction::Instruction(std::string_view assembly, bool hasSetABI)
 {
-    std::ranges::replace(assembly, ',', ' ');
-    std::stringstream tmp(assembly);
+    std::string s(assembly);
+    std::ranges::replace(s, ',', ' ');
+    std::istringstream tmp(s);
 
     std::vector<std::string> parts;
-    while(tmp >> parts.emplace_back()) // get inst name;
-        ;
-    // parts.pop_back();
+    for(std::string token; tmp >> token;) {
+        parts.emplace_back(std::move(token));
+    }
 
-    Type_= InstTypeFactory::CreateType(parts, hasSetABI);
+    Type_= InstTypeFactory::CreateType(std::move(parts), hasSetABI);
 
     if(Type_) {
         const auto &[MAN_URL, XLEN, _1, opc]= Type_->LookupIdxAndInfo();
 
-        // std::cout << "XLEN: " << XLEN << '\n'
-        //           << "MAN_URL: " << MAN_URL << '\n';
         XLEN_  = XLEN;
         Manual_= MAN_URL;
         Format_= GetFormat();
@@ -52,6 +52,7 @@ Instruction::Instruction(Instruction &&that) noexcept
 {
     that.XLEN_  = "UNDEF";
     that.Format_= "UNKNOW";
+    that.Manual_= "Not available";
 }
 
 Instruction &Instruction::operator= (Instruction &&that) noexcept
@@ -65,11 +66,10 @@ Instruction &Instruction::operator= (Instruction &&that) noexcept
 
         that.XLEN_  = "UNDEF";
         that.Format_= "UNKNOW";
+        that.Manual_= "Not available";
     }
     return *this;
 }
-
-// Instruction::Instruction(std::string_view inst) { }
 
 Instruction::operator std::string() const { return Disassembly_.str(); }
 
@@ -81,7 +81,12 @@ const IBaseInstType &Instruction::GetType() const { return *Type_; }
 
 const std::bitset<32> &Instruction::GetBitField() const { return BitField_; }
 
-std::string Instruction::GetHexStr() const { return BitField_.to_string(); }
+std::string Instruction::GetHexStr() const
+{
+    return std::format("{:08X}", static_cast<unsigned>(BitField_.to_ulong()));
+}
+
+std::string Instruction::GetBinStr() const { return BitField_.to_string(); }
 
 std::string_view Instruction::GetXLEN() const { return XLEN_; }
 
@@ -91,11 +96,13 @@ std::string_view Instruction::GetFormat() const noexcept
 {
     if(!Type_) return "UNKNOW";
 
-    static constexpr std::array<std::string_view, 6> S_NAMES= { "R-Type", "I-Type", "S-Type", "B-Type", "U-Type", "J-Type" };
+    const auto FMT= Type_->GetInstFormat();
+    if(InstFormat::UNKNOWN == FMT) return "UNKNOW";
+    using namespace std::string_view_literals;
+    static constexpr std::array<std::string_view, 6> S_NAMES { "R-Type"sv, "I-Type"sv, "S-Type"sv, "B-Type"sv, "U-Type"sv, "J-Type"sv };
 
-    auto idx= static_cast<std::size_t>(Type_->GetInstFormat());
-
-    return idx < S_NAMES.size() ? S_NAMES[idx] : "UNKNOW";
+    const auto IDX= static_cast<std::size_t>(FMT);
+    return IDX < S_NAMES.size() ? S_NAMES[IDX] : "UNKNOW";
 }
 
 bool Instruction::Decode()
@@ -109,7 +116,6 @@ bool Instruction::Decode()
         } else {
             Type_->Disassembly();
         }
-
         Type_->Parse();
 
         const auto &v= Type_->GetInstAssembly();
@@ -117,7 +123,6 @@ bool Instruction::Decode()
             Disassembly_ << e;
             // std::cout << Disassembly_.str() << '\n';
         }
-
         return true;
     }
 
