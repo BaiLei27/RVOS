@@ -40,8 +40,9 @@ add_compile_options(
     -fdata-sections
     -funroll-loops
     -fomit-frame-pointer
-    -fno-PIC
-    -fno-pie
+
+    # -fno-PIC
+    # -fno-pie
     "$<$<CONFIG:Debug>:-ggdb3;-DDEBUG>"
     $<$<CONFIG:Release,MinSizeRel>:-DNDEBUG>
 )
@@ -59,7 +60,7 @@ add_link_options(
     -lm
     $<$<CONFIG:Release,MinSizeRel>:-s>
 )
-
+add_subdirectory(Logger)
 set(backend ${PROJECT_NAME}_backend)
 add_library(${backend} SHARED)
 add_executable(
@@ -80,10 +81,12 @@ set_target_properties(${backend} PROPERTIES
 
 include_directories(SYSTEM
     inc
+    Logger
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${backend}
+    $<$<CONFIG:Debug>:Logger>
 )
 
 target_sources(${backend} PRIVATE
@@ -91,7 +94,6 @@ target_sources(${backend} PRIVATE
     src/ISA/Regs.cc
 
     inc/Util/BiLookupTable.hpp
-    inc/Log/Logger.hpp
 
     inc/Core/IBaseInstType.hh
     src/Core/IBaseInstType.cc

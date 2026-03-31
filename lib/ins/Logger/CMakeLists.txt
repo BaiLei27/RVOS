@@ -1,0 +1,31 @@
+cmake_minimum_required(VERSION 3.25...3.27)
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS ON)
+
+set(CMAKE_COLOR_DIAGNOSTICS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+project(Logger
+    VERSION "0.0.2"
+    LANGUAGES CXX
+)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
+add_library(${PROJECT_NAME} SHARED)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+)
+
+target_sources(${PROJECT_NAME} PRIVATE
+    Logger.hh
+    Logger.cc
+)
+
+SetupCodeChecks(${PROJECT_NAME})
