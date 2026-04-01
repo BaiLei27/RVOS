@@ -33,12 +33,25 @@ void IType::Parse()
 
 void IType::mnemonicHelper()
 {
-    auto rd  = isa::LOOKUP_REG_NAME(Layout_.I.rd, HasSetABI_);
-    auto rs1 = isa::LOOKUP_REG_NAME(Layout_.I.rs1, HasSetABI_);
-    // Sign-extend 12-bit imm to int32 for display
-    int32_t imm   = static_cast<int32_t>(static_cast<int16_t>(Layout_.I.imm0tB & 0xFFF));
-    std::string immStr= std::to_string(imm);
+    const uint32_t opc= Layout_.I.opc;
+    if(opc == 0x73) {
+        if(InstAssembly_.size() > 1) {
+            InstAssembly_.resize(1);
+        }
+        return;
+    }
 
+    const int32_t imm= static_cast<int32_t>(static_cast<int16_t>(Layout_.I.imm0tB & 0xFFF));
+    const std::string immStr= std::to_string(imm);
+
+    if(opc == 0x0F) {
+        auto z= isa::LOOKUP_REG_NAME(0, HasSetABI_);
+        appendOperands({" ", z, ",", z, ",", std::string_view(immStr) });
+        return;
+    }
+
+    auto rd = isa::LOOKUP_REG_NAME(Layout_.I.rd, HasSetABI_);
+    auto rs1= isa::LOOKUP_REG_NAME(Layout_.I.rs1, HasSetABI_);
     appendOperands({" ", rd, ",", rs1, ",", std::string_view(immStr) });
 }
 
@@ -61,19 +74,41 @@ const InstLayout &IType::Assembly()
 {
     const auto &info= LookupIdxAndInfo();
 
-    Layout_.I.opc   = Opcode_= info.opcode_;
-    Layout_.I.fct3  = info.funct_ & 7;
-    Layout_.I.imm0tB= (info.funct_ >> 3) << 5; // upper 7 bits for slli/srli/srai; 0 for others
+    Layout_.I.opc= Opcode_= info.opcode_;
+    const uint16_t key= info.funct_;
+
+    if(info.opcode_ == 0x13) {
+        Layout_.I.fct3  = key & 7;
+        Layout_.I.imm0tB= (static_cast<uint32_t>((key >> 3) & 0x7F) << 5);
+    } else if(info.opcode_ == 0x73) {
+        Layout_.I.fct3  = 0;
+        Layout_.I.imm0tB= static_cast<uint32_t>(key & 0xFFF);
+    } else {
+        Layout_.I.fct3  = key & 7;
+        Layout_.I.imm0tB= 0;
+    }
+
+    if(info.opcode_ == 0x73) {
+        Layout_.I.rd = 0;
+        Layout_.I.rs1= 0;
+    }
 
     if(!InstAssembly_.empty() && InstAssembly_.size() >= 4) {
-        Layout_.I.rd  = *isa::LOOKUP_REG_IDX(InstAssembly_.at(1));
-        Layout_.I.rs1 = *isa::LOOKUP_REG_IDX(InstAssembly_.at(2));
-        int32_t imm   = std::stoi(InstAssembly_.at(3));
-        // slli/srli/srai: only lower 5 bits (shift amount); others: full 12-bit imm
-        if(Layout_.I.fct3 == 1 || Layout_.I.fct3 == 5) {
-            Layout_.I.imm0tB|= (imm & 0x1F);
-        } else {
-            Layout_.I.imm0tB|= (imm & 0xFFF);
+        if(auto rdOpt= isa::LOOKUP_REG_IDX(InstAssembly_.at(1))) {
+            Layout_.I.rd= *rdOpt;
+        }
+        if(auto rs1Opt= isa::LOOKUP_REG_IDX(InstAssembly_.at(2))) {
+            Layout_.I.rs1= *rs1Opt;
+        }
+        const int32_t imm= std::stoi(InstAssembly_.at(3));
+        if(info.opcode_ == 0x13) {
+            if(Layout_.I.fct3 == 1 || Layout_.I.fct3 == 5) {
+                Layout_.I.imm0tB= (Layout_.I.imm0tB & UINT32_C(0xFE0)) | (static_cast<uint32_t>(imm) & 0x1F);
+            } else {
+                Layout_.I.imm0tB= static_cast<uint32_t>(imm) & 0xFFF;
+            }
+        } else if(info.opcode_ != 0x73) {
+            Layout_.I.imm0tB= static_cast<uint32_t>(imm) & 0xFFF;
         }
     }
 
@@ -84,8 +119,17 @@ const InstLayout &IType::Assembly()
 
 IBaseInstType::KeyT IType::calculateFunctKey()
 {
-    // I-type: functKey = (imm[11:5] << 3) | funct3
-    FunctKey_= (Layout_.I.imm0tB >> 5) << 3 | Layout_.I.fct3;
+    switch(Layout_.I.opc) {
+    case 0x13:
+        FunctKey_= static_cast<KeyT>(((Layout_.I.imm0tB >> 5) << 3) | Layout_.I.fct3);
+        break;
+    case 0x73:
+        FunctKey_= static_cast<KeyT>((0x73u << 8) | (Layout_.I.imm0tB & 0xFFFu));
+        break;
+    default:
+        FunctKey_= static_cast<KeyT>((static_cast<uint32_t>(Layout_.I.opc) << 8) | Layout_.I.fct3);
+        break;
+    }
     return FunctKey_;
 }
 

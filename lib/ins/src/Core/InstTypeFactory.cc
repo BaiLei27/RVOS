@@ -26,10 +26,14 @@ const InstTypeFactory::name2FormatOpcode_u &InstTypeFactory::getName2FormatOpcod
 {
     static const name2FormatOpcode_u OPC_CACHE= [] {
         name2FormatOpcode_u m;
-        std::cout<< "RType::G_INST_TABLE.size(): " << RType::G_INST_TABLE.size() << '\n';
         for(const auto &entry: RType::G_INST_TABLE) {
             if(entry.opcode_ != 0 && !entry.name_.empty()) {
                 m.emplace(entry.name_, std::pair { InstFormat::R, entry.opcode_ });
+            }
+        }
+        for(const auto &entry: IType::G_INST_TABLE) {
+            if(entry.opcode_ != 0 && !entry.name_.empty()) {
+                m.emplace(entry.name_, std::pair { InstFormat::I, entry.opcode_ });
             }
         }
         return m;
@@ -50,6 +54,8 @@ std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(std::vector<std::stri
         switch(fmt) {
         case InstFormat::R:
             return std::make_unique<RType>(std::move(instAssembly), fmt, hasSetABI);
+        case InstFormat::I:
+            return std::make_unique<IType>(std::move(instAssembly), fmt, hasSetABI);
         default:
             std::cout << "Unsupported instruction format\n";
             break;
