@@ -3,6 +3,7 @@
 #include "Core/InstTypeFactory.hh"
 #include "Core/RType.hh"
 #include "Core/IType.hh"
+#include "Core/JType.hh"
 
 std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(uint32_t inst, bool hasSetABI)
 {
@@ -14,6 +15,8 @@ std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(uint32_t inst, bool h
             return std::make_unique<RType>(inst, it->second, hasSetABI);
         case InstFormat::I:
             return std::make_unique<IType>(inst, it->second, hasSetABI);
+        case InstFormat::J:
+            return std::make_unique<JType>(inst, it->second, hasSetABI);
         default:
             std::cout << "Unsupported instruction format\n";
         }
@@ -36,6 +39,11 @@ const InstTypeFactory::name2FormatOpcode_u &InstTypeFactory::getName2FormatOpcod
                 m.emplace(entry.name_, std::pair { InstFormat::I, entry.opcode_ });
             }
         }
+        for(const auto &entry: JType::G_INST_TABLE) {
+            if(entry.opcode_ != 0 && !entry.name_.empty()) {
+                m.emplace(entry.name_, std::pair { InstFormat::J, entry.opcode_ });
+            }
+        }
         return m;
     }();
     return OPC_CACHE;
@@ -56,6 +64,8 @@ std::unique_ptr<IBaseInstType> InstTypeFactory::CreateType(std::vector<std::stri
             return std::make_unique<RType>(std::move(instAssembly), fmt, hasSetABI);
         case InstFormat::I:
             return std::make_unique<IType>(std::move(instAssembly), fmt, hasSetABI);
+        case InstFormat::J:
+            return std::make_unique<JType>(std::move(instAssembly), fmt, hasSetABI);
         default:
             std::cout << "Unsupported instruction format\n";
             break;
