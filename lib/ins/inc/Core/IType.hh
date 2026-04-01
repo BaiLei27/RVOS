@@ -5,12 +5,12 @@
 
 namespace ITypeKey {
 
-// OP-IMM (0x13) 表中 funct_：仅 (imm[11:5] << 3) | funct3，与解码 calculateFunctKey 一致。
+// OP-IMM (0x13): table key funct_ is only (imm[11:5] << 3) | funct3 (matches decode calculateFunctKey).
 constexpr uint16_t OP_IMM(uint8_t imm7, uint8_t f3)
 {
     return (static_cast<uint16_t>(imm7) << 3) | static_cast<uint16_t>(f3 & 7);
 }
-// 其它 I-type opcode：查表键 (opcode<<8)|funct3，避免与 0x13 的局部 funct_ 撞键。
+// Other I-type opcodes: lookup key (opcode<<8)|funct3 to avoid collisions with OP-IMM funct_ keys.
 constexpr uint16_t OPC_F3(uint8_t opc, uint8_t f3)
 {
     return (static_cast<uint16_t>(opc) << 8) | static_cast<uint16_t>(f3 & 7);
@@ -20,7 +20,7 @@ constexpr uint16_t OPC_F3(uint8_t opc, uint8_t f3)
 
 class IType: public IBaseInstType {
 public:
-    // RV32I / Zifencei。OP-IMM 行 funct_ = (imm[11:5]<<3)|funct3；其余 opcode 用 (opcode<<8)|funct3。
+    // RV32I / Zifencei: OP-IMM rows use funct_ = (imm[11:5]<<3)|funct3; other opcodes use (opcode<<8)|funct3.
     constexpr static std::array<InstInfo, 19> G_INST_TABLE= {
         { { .name_="lb",    .XLEN_="RV32I",   .funct_=ITypeKey::OPC_F3(0x03, 0), .opcode_=0x03 },
           { .name_="lh",    .XLEN_="RV32I",   .funct_=ITypeKey::OPC_F3(0x03, 1), .opcode_=0x03 },

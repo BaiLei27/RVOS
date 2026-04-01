@@ -1,4 +1,4 @@
-# CodeCheck.cmake — Simultaneously manage clang-format 和 clang-tidy
+# CodeCheck.cmake — run clang-format and clang-tidy together
 
 find_package(ClangFormat)
 find_package(ClangTidy)
