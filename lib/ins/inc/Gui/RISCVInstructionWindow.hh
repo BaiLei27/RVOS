@@ -18,7 +18,7 @@ public:
     Gtk::Button *pSettingsBtn_ {};
     Gtk::Popover *pSettingsPopover_ {};
     Gtk::Switch *pAbiSwitch_ {};
-    Gtk::DropDown *pIsaDropDown_ {};
+    Gtk::MenuButton *pIsaMenuBtn_ {};
     Instruction *pInst_ {};
     InstFormatUI *rTypeUI_ {};
     InstFormatUI *iTypeUI_ {};

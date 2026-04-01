@@ -280,18 +280,42 @@ void RISCVInstructionWindow::setupSettingsPopover()
     pIsaLabel->set_halign(Gtk::Align::START);
     pIsaRow->append(*pIsaLabel);
 
-    const std::vector<Glib::ustring> isaOpts{"AUTO", "RV32I", "RV64I", "RV128I"};
-    auto isaList= Gtk::StringList::create(isaOpts);
-    pIsaDropDown_= Gtk::make_managed<Gtk::DropDown>(isaList);
-    pIsaDropDown_->set_selected(0);
-    pIsaDropDown_->set_hexpand(true);
-    pIsaDropDown_->set_halign(Gtk::Align::END);
-    pIsaDropDown_->property_selected().signal_changed().connect([this] {
-        // Close settings popover when ISA is selected; avoids nested DropDown
-        // popover staying open (GTK4 popover-inside-popover behavior)
-        pSettingsPopover_->popdown();
-    });
-    pIsaRow->append(*pIsaDropDown_);
+    // MenuButton + buttons: each click closes popovers (Gtk::DropDown does not
+    // emit selection change when re-picking the same row, so its list can stay open).
+    pIsaMenuBtn_= Gtk::make_managed<Gtk::MenuButton>();
+    pIsaMenuBtn_->set_label("AUTO");
+    pIsaMenuBtn_->set_hexpand(true);
+    pIsaMenuBtn_->set_halign(Gtk::Align::END);
+
+    auto pIsaPopover= Gtk::make_managed<Gtk::Popover>();
+    auto pIsaChoices= Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 0);
+    pIsaChoices->set_margin(6);
+
+    const std::vector<std::pair<Glib::ustring, int>> isaOpts{
+        {"AUTO",  0},
+        {"RV32I", 1},
+        {"RV64I", 2},
+        {"RV128I", 3},
+    };
+
+    for(const auto &[label, idx]: isaOpts) {
+        auto pOptBtn= Gtk::make_managed<Gtk::Button>(label);
+        pOptBtn->signal_clicked().connect([this, pIsaPopover, label, idx] {
+            selectedIsaIndex_= idx;
+            if(pIsaMenuBtn_) {
+                pIsaMenuBtn_->set_label(label);
+            }
+            pIsaPopover->popdown();
+            if(pSettingsPopover_) {
+                pSettingsPopover_->popdown();
+            }
+        });
+        pIsaChoices->append(*pOptBtn);
+    }
+
+    pIsaPopover->set_child(*pIsaChoices);
+    pIsaMenuBtn_->set_popover(*pIsaPopover);
+    pIsaRow->append(*pIsaMenuBtn_);
     pPopoverBox->append(*pIsaRow);
 
     pSettingsPopover_->set_child(*pPopoverBox);
