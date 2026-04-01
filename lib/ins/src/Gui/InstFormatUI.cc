@@ -176,10 +176,16 @@ void InstFormatUI::updateAssemblyDisplay(Instruction &inst)
     if(pInstType == nullptr) {
         return;
     }
-    if(pInstType->GetInstFormat() == InstFormat::R) {
+    switch(pInstType->GetInstFormat()) {
+    case InstFormat::R:
         updateRTypeDisplay(inst);
-    } else if(pInstType->GetInstFormat() == InstFormat::I) {
+        break;
+    case InstFormat::I:
+    case InstFormat::J:
         updateITypeDisplay(inst);
+        break;
+    default:
+        break;
     }
 }
 
@@ -305,4 +311,37 @@ InstTypeRelationEntity createITypeFormat()
     };
 
     return iFormat;
+}
+
+InstTypeRelationEntity createJTypeFormat()
+{
+    InstTypeRelationEntity jFormat;
+
+    jFormat.typeName_ = "J-Type";
+    jFormat.fmt_      = InstFormat::J;
+    jFormat.instTypeV_= { "mnemonic", "rd", ",", "imm" };
+    jFormat.binaryV_  = {
+        { "imm20",    31, 31, "imm[20]"   },
+        { "imm10_1",  21, 30, "imm[10:1]" },
+        { "imm11",    20, 20, "imm[11]"   },
+        { "imm19_12", 12, 19, "imm[19:12]" },
+        { "rd",       7,  11, "rd"        },
+        { "opcode",   0,  6,  "opcode"    },
+    };
+
+    jFormat.binaryFieldRelations_= {
+        { "opcode",   { "mnemonic" } },
+        { "imm20",    { "imm" } },
+        { "imm10_1",  { "imm" } },
+        { "imm11",    { "imm" } },
+        { "imm19_12", { "imm" } },
+        { "rd",       { "rd" } },
+    };
+    jFormat.asmFieldRelations= {
+        { "mnemonic", { "opcode" } },
+        { "rd",       { "rd" } },
+        { "imm",      { "imm20", "imm10_1", "imm11", "imm19_12" } },
+    };
+
+    return jFormat;
 }
