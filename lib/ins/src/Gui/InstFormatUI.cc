@@ -182,6 +182,7 @@ void InstFormatUI::updateAssemblyDisplay(Instruction &inst)
         break;
     case InstFormat::I:
     case InstFormat::J:
+    case InstFormat::U:
         updateITypeDisplay(inst);
         break;
     default:
@@ -344,4 +345,31 @@ InstTypeRelationEntity createJTypeFormat()
     };
 
     return jFormat;
+}
+
+InstTypeRelationEntity createUTypeFormat()
+{
+    InstTypeRelationEntity uFormat;
+
+    uFormat.typeName_ = "U-Type";
+    uFormat.fmt_      = InstFormat::U;
+    uFormat.instTypeV_= { "mnemonic", "rd", ",", "imm" };
+    uFormat.binaryV_  = {
+        { "imm31_12", 12, 31, "imm[31:12]" },
+        { "rd",       7,  11, "rd"         },
+        { "opcode",   0,  6,  "opcode"     },
+    };
+
+    uFormat.binaryFieldRelations_= {
+        { "opcode",   { "mnemonic" } },
+        { "imm31_12", { "imm" } },
+        { "rd",       { "rd" } },
+    };
+    uFormat.asmFieldRelations= {
+        { "mnemonic", { "opcode" } },
+        { "rd",       { "rd" } },
+        { "imm",      { "imm31_12" } },
+    };
+
+    return uFormat;
 }
