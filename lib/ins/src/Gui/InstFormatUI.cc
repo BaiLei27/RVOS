@@ -183,6 +183,7 @@ void InstFormatUI::updateAssemblyDisplay(Instruction &inst)
     case InstFormat::I:
     case InstFormat::J:
     case InstFormat::U:
+    case InstFormat::S:
         updateITypeDisplay(inst);
         break;
     default:
@@ -372,4 +373,38 @@ InstTypeRelationEntity createUTypeFormat()
     };
 
     return uFormat;
+}
+
+InstTypeRelationEntity createSTypeFormat()
+{
+    InstTypeRelationEntity sFormat;
+
+    sFormat.typeName_ = "S-Type";
+    sFormat.fmt_      = InstFormat::S;
+    sFormat.instTypeV_= { "mnemonic", "rs2", ",", "imm", "(", "rs1", ")" };
+    sFormat.binaryV_  = {
+        { "imm11_5", 25, 31, "imm[11:5]" },
+        { "rs2",     20, 24, "rs2"      },
+        { "rs1",     15, 19, "rs1"      },
+        { "funct3",  12, 14, "funct3"   },
+        { "imm4_0",  7,  11, "imm[4:0]" },
+        { "opcode",  0,  6,  "opcode"   },
+    };
+
+    sFormat.binaryFieldRelations_= {
+        { "opcode",  { "mnemonic", "funct3" } },
+        { "funct3",  { "mnemonic", "opcode" } },
+        { "imm11_5", { "imm" } },
+        { "imm4_0",  { "imm" } },
+        { "rs1",     { "rs1" } },
+        { "rs2",     { "rs2" } },
+    };
+    sFormat.asmFieldRelations= {
+        { "mnemonic", { "opcode", "funct3" } },
+        { "rs2",      { "rs2" } },
+        { "imm",      { "imm11_5", "imm4_0" } },
+        { "rs1",      { "rs1" } },
+    };
+
+    return sFormat;
 }

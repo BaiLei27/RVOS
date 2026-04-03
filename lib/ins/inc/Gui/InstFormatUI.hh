@@ -52,5 +52,6 @@ InstTypeRelationEntity createRTypeFormat();
 InstTypeRelationEntity createITypeFormat();
 InstTypeRelationEntity createJTypeFormat();
 InstTypeRelationEntity createUTypeFormat();
+InstTypeRelationEntity createSTypeFormat();
 
 #endif // INSTFORMATUI_HH_
