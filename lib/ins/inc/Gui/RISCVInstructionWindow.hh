@@ -25,6 +25,7 @@ public:
     InstFormatUI *jTypeUI_ {};
     InstFormatUI *uTypeUI_ {};
     InstFormatUI *sTypeUI_ {};
+    InstFormatUI *bTypeUI_ {};
 
     bool hasSetABI_              = false;
     int selectedIsaIndex_       = 0;  // 0=AUTO, 1=RV32I, 2=RV64I, 3=RV128I

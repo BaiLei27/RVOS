@@ -101,6 +101,15 @@ void RISCVInstructionWindow::initInstFormatUI()
         }
     });
     uiContainer_->append(*sTypeUI_);
+
+    bTypeUI_= new InstFormatUI(createBTypeFormat());
+    bTypeUI_->set_visible(false);
+    bTypeUI_->signal_put_to_output.connect([this](const std::string &content) {
+        if(InsEntry_ && InsEntry_->get_buffer()) {
+            InsEntry_->get_buffer()->set_text(content);
+        }
+    });
+    uiContainer_->append(*bTypeUI_);
 }
 
 void RISCVInstructionWindow::hideAllTypeUI()
@@ -110,6 +119,7 @@ void RISCVInstructionWindow::hideAllTypeUI()
     jTypeUI_->hide();
     uTypeUI_->hide();
     sTypeUI_->hide();
+    bTypeUI_->hide();
 }
 
 static bool looksLikeHex(std::string_view s)
@@ -234,6 +244,10 @@ void RISCVInstructionWindow::showInsResult(Instruction &inst)
     case InstFormat::S:
         sTypeUI_->show();
         pCurrUi= sTypeUI_;
+        break;
+    case InstFormat::B:
+        bTypeUI_->show();
+        pCurrUi= bTypeUI_;
         break;
     default:
         showError("err inst type!");
