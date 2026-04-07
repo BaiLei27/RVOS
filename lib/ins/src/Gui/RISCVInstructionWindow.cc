@@ -161,13 +161,15 @@ void RISCVInstructionWindow::onInsButtonParseClicked()
     int ret   = 0;
     auto text= InsEntry_->get_text();
     if(text.empty()) {
-        showError("Please enter hex (0x33), binary (0b110011), or assembly (e.g. add x0,x0,x0)");
+        showError("invalid input: empty");
         return;
     }
 
     std::string inputStr(text);
 
     try {
+        delete pInst_;
+        pInst_= nullptr;
         // Check binary before hex: "000...00110011" (all 0/1, len>=8) is binary; "0x33" stays hex
         if(looksLikeBinary(inputStr)) {
             std::string cleanStr(getBinaryDigits(inputStr));
@@ -201,13 +203,13 @@ void RISCVInstructionWindow::onInsButtonParseClicked()
         }
         showInsResult(*pInst_);
     } catch(const std::invalid_argument &e) {
-        showError(std::string("Invalid input: ") + e.what());
-    } catch(const std::out_of_range &e) {
-        showError("Value out of range: only 32-bit instructions supported (0x00000000 ~ 0xFFFFFFFF)");
+        showError(std::string("invalid input: ") + e.what());
+    } catch(const std::out_of_range &) {
+        showError("invalid input: value must fit in 32 bits");
     } catch(const std::exception &e) {
-        showError(std::string("Decode failed: ") + e.what());
+        showError(std::string("invalid input: ") + e.what());
     } catch(...) {
-        showError("Unknown error");
+        showError("invalid input: unknown error");
     }
 
     InsEntry_->grab_focus();
@@ -250,8 +252,8 @@ void RISCVInstructionWindow::showInsResult(Instruction &inst)
         pCurrUi= bTypeUI_;
         break;
     default:
-        showError("err inst type!");
-        break;
+        showError("invalid input: unsupported instruction format");
+        return;
     }
 
     std::ostringstream oss;
@@ -271,11 +273,14 @@ void RISCVInstructionWindow::UpdateDisplay(InstFormatUI &instUi, Instruction &in
 
 void RISCVInstructionWindow::showError(const std::string &message)
 {
+    hideAllTypeUI();
+    delete pInst_;
+    pInst_= nullptr;
     auto buffer= InsTextView_->get_buffer();
     if(buffer) {
         buffer->set_text("Error: " + message);
     }
-    std::cerr << "Error: " << message;
+    std::cerr << "Error: " << message << '\n';
 }
 
 void RISCVInstructionWindow::refreshAssemblyForAbiChange()
@@ -288,6 +293,8 @@ void RISCVInstructionWindow::refreshAssemblyForAbiChange()
     pInst_= new Instruction(val, hasSetABI_);
     if(pInst_->Decode()) {
         showInsResult(*pInst_);
+    } else {
+        showError("invalid input: failed to decode after ABI change");
     }
 }
 
