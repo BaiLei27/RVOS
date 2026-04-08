@@ -5,7 +5,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
 set(CMAKE_COLOR_DIAGNOSTICS ON)
-set(CMAKE_COLOR_DIAGNOSTICS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(PkgConfig REQUIRED)
@@ -43,18 +42,9 @@ add_compile_options(
     -fdata-sections
     -funroll-loops
     -fomit-frame-pointer
-
-    # -fno-PIC
-    # -fno-pie
     "$<$<CONFIG:Debug>:-ggdb3;-DDEBUG>"
     $<$<CONFIG:Release,MinSizeRel>:-DNDEBUG>
 )
-
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_|amd|AMD)64$")
-    add_compile_options(
-        -march=native
-    )
-endif()
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_|amd|AMD)64$")
     add_compile_options(
@@ -69,6 +59,7 @@ add_link_options(
     -lm
     $<$<CONFIG:Release,MinSizeRel>:-s>
 )
+
 add_subdirectory(Logger)
 set(backend ${PROJECT_NAME}_backend)
 add_library(${backend} SHARED)
@@ -83,7 +74,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${backend}
-    PRIVATE ${GTKMM_LIBRARIES}
 )
 
 add_executable(
@@ -100,16 +90,16 @@ set_target_properties(${PROJECT_NAME}_gui PROPERTIES
     SUFFIX ".exe"
 )
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/res)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resource)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/InstStyle.css
-    ${CMAKE_CURRENT_BINARY_DIR}/res/InstStyle.css
+    ${CMAKE_CURRENT_BINARY_DIR}/resource/InstStyle.css
     COPYONLY
 )
 
 target_compile_definitions(${PROJECT_NAME}_gui PUBLIC
-    CSS_FILE_PATH="${CMAKE_CURRENT_BINARY_DIR}/res/InstStyle.css"
+    CSS_FILE_PATH="${CMAKE_CURRENT_BINARY_DIR}/resource/InstStyle.css"
 )
 
 set_target_properties(${backend} PROPERTIES
@@ -119,10 +109,12 @@ set_target_properties(${backend} PROPERTIES
     # OUTPUT_NAME "backEnd"
 )
 
-include_directories(SYSTEM
+include_directories(
     inc
     Logger
 )
+
+target_include_directories(${PROJECT_NAME}_gui SYSTEM PRIVATE ${GTKMM_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${backend}
@@ -188,7 +180,7 @@ target_sources(${PROJECT_NAME}_gui PRIVATE
     src/Gui/RISCVInstructionWindow.cc
 )
 
-SetupCodeChecks(${backend} ${PROJECT_NAME} ${PROJECT_NAME}_gui)
+SetupCodeChecks(${PROJECT_NAME} ${backend} ${PROJECT_NAME}_gui)
 
 DefineCodeChecksTargets("fmt" "tidy")
 get_filename_component(builddir ${CMAKE_CURRENT_BINARY_DIR} NAME)
