@@ -1,0 +1,3 @@
+[submodule "subprj/inst"]
+	path = subprj/inst
+	url = git@github.com:BaiLei27/RVINST
