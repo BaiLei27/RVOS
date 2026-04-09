@@ -10,6 +10,7 @@ target_sources(${target} PRIVATE
 )
 
 target_link_options(${target} PRIVATE
+    -nostdlib
     -T ${ldLinkPath}/_asm_start.ld
     -Wl,-Map=${CMAKE_CURRENT_BINARY_DIR}/${target}.map
 )
