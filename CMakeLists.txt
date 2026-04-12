@@ -26,47 +26,56 @@ find_package(Git)
 
 set(INST_builddir ${CMAKE_BINARY_DIR}/build-INST)
 
-ExternalProject_Add(
-    INST
-    SOURCE_DIR ${subProjectPath}
-    BINARY_DIR ${INST_builddir}
+# ExternalProject_Add(
+# INST
+# SOURCE_DIR ${subProjectPath}
+# BINARY_DIR ${INST_builddir}
 
-    CMAKE_ARGS
-    -DCMAKE_MODULE_PATH=${customModulesPath}
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DrootBuilddir=${rootBuilddir}
+# CMAKE_ARGS
+# -DCMAKE_MODULE_PATH=${customModulesPath}
+# -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+# -DrootBuilddir=${rootBuilddir}
 
-    # -DrootPath=${rootPath}
-    INSTALL_COMMAND ""
-)
-
+# # -DrootPath=${rootPath}
+# INSTALL_COMMAND ""
+# )
 add_executable(${PROJECT_NAME})
-add_subdirectory(asm)
+# add_subdirectory(asm)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     inc
 )
 
 target_sources(${PROJECT_NAME} PRIVATE
+    ${ldLinkPath}/os_start.S
+    src/Lib/syscalls.cc
+    src/Kernel.cc
 
-    src/kernel.cc
+    inc/Drivers/Peripheral.hh
+    src/Drivers/Peripheral.cc
+    inc/Drivers/Uart.hh
+    src/Drivers/Uart.cc
 )
 
 target_compile_options(${PROJECT_NAME} PRIVATE
     -march=rv64gcv
     -mabi=lp64d
     -mcmodel=medany
+    # -mcmodel=large
 )
 
 target_link_options(${PROJECT_NAME} PRIVATE
-    -nostdlib
-    # -nostartfiles
-    # -nodefaultlibs
-    -lstdc++
-    -lc
-    -lgcc
+    # -nostdlib
+    -nostartfiles
 
-    -Ttext=0x80000000
+    # -nodefaultlibs
+    # --specs=nosys.specs
+    --specs=nano.specs
+    -lc -lm -lgcc
+    -lsupc++
+
+    # -Ttext=0x80000000
+    -T ${ldLinkPath}/_os_start.ld
     -Wl,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map
 )
 SetupCodeChecks(${PROJECT_NAME})
@@ -81,4 +90,5 @@ endif()
 
 MergeCompileCmdFiles(${CMAKE_BINARY_DIR} ${INST_builddir})
 add_dependencies(RVOS merge_compile_commands)
-add_dependencies(INST merge_compile_commands)
+
+# add_dependencies(INST merge_compile_commands)
