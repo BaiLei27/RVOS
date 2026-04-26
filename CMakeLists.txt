@@ -42,13 +42,13 @@ ExternalProject_Add(
 
 add_executable(${PROJECT_NAME})
 add_subdirectory(asm)
+add_subdirectory(tests)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     inc
 )
 
 target_sources(${PROJECT_NAME} PRIVATE
-
     src/kernel.cc
 )
 
