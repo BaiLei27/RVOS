@@ -157,6 +157,7 @@ CheckOptions:
   cppcoreguidelines-init-variables.MathHeader: '<cmath>'
   cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreUnnamedParams: 'true'
   cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreNonDeducedTemplateTypes: 'true'
+  cppcoreguidelines-pro-bounds-pointer-arithmetic.AllowIncrementDecrementOperators: 'true'
 
   # 现代化(Modernize)
   modernize-use-override.IgnoreDestructors: 'true'

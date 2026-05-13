@@ -14,6 +14,11 @@ project(RVOS
 set(rootPath ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "project root directory")
 set(rootBuilddir ${CMAKE_BINARY_DIR} CACHE PATH "project root builddir")
 set(ldLinkPath ${CMAKE_CURRENT_LIST_DIR}/Startup CACHE PATH "Linker script directory")
+set(_64bitCommonOpts -march=rv64gc -mabi=lp64d -mcmodel=medany)
+set(specsFile
+    $<$<COMPILE_LANGUAGE:C>:--specs=picolibc.specs>
+    $<$<COMPILE_LANGUAGE:CXX>:--specs=picolibcpp.specs>
+)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
@@ -42,6 +47,7 @@ ExternalProject_Add(
 
 add_executable(${PROJECT_NAME})
 add_subdirectory(asm)
+add_subdirectory(tests)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     inc
@@ -49,24 +55,23 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_sources(${PROJECT_NAME} PRIVATE
 
-    src/kernel.cc
+    # ${ldLinkPath}/os_start.S
+    src/Kernel.cc
 )
 
 target_compile_options(${PROJECT_NAME} PRIVATE
-    -march=rv64gcv
-    -mabi=lp64d
-    -mcmodel=medany
+    ${_64bitCommonOpts}
+    ${specsFile}
 )
 
 target_link_options(${PROJECT_NAME} PRIVATE
-    -nostdlib
+    ${_64bitCommonOpts}
+    ${specsFile}
+
+    # -nostdlib
     # -nostartfiles
     # -nodefaultlibs
-    -lstdc++
-    -lc
-    -lgcc
-
-    -Ttext=0x80000000
+    -T ${ldLinkPath}/qemu-virt_rv.ld
     -Wl,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map
 )
 SetupCodeChecks(${PROJECT_NAME})
@@ -82,3 +87,5 @@ endif()
 MergeCompileCmdFiles(${CMAKE_BINARY_DIR} ${INST_builddir})
 add_dependencies(RVOS merge_compile_commands)
 add_dependencies(INST merge_compile_commands)
+RunInQEMU(${PROJECT_NAME})
+GenerateASMFile(${PROJECT_NAME} "-DCS")
