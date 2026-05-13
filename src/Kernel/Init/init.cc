@@ -2,13 +2,13 @@
 // #include <stdio.h>
 // #include <stdlib.h>
 
-int KernelInit()
+int SystemInit()
 {
     return 0;
 }
 
 int main()
 {
-    KernelInit();
+    SystemInit();
     return 0;
 }

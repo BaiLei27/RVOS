@@ -377,3 +377,165 @@
 [rvcodec]: https://luplab.gitlab.io/rvcodecjs/
 
 ---
+
+RVOS
+├── Arch
+│    ├── riscv
+│    └── csr
+│
+├── MMIO
+│    └── Register access
+│
+├── Bus
+│    ├── PlatformBus
+│    ├── PCI
+│    ├── VirtIO
+│    └── I2C/SPI
+│
+├── Device
+│    ├── Device
+│    ├── Driver
+│    └── Resource
+│
+├── Drivers
+│    ├── UART
+│    ├── GPIO
+│    ├── TIMER
+│    ├── PLIC
+│    ├── CLINT
+│    └── VirtIO
+│
+└── Kernel
+     ├── IRQ
+     ├── Scheduler
+     └── Memory
+
+RVOS
+├── docs/
+│   ├── architecture/
+│   ├── memory/
+│   ├── scheduler/
+│   ├── interrupt/
+│   ├── boot/
+│   └── TODO.md
+│
+├── scripts/
+│   ├── qemu/
+│   ├── gdb/
+│   ├── build/
+│   └── python/
+│
+├── cmake/
+│
+├── arch/
+│   └── riscv/
+│       ├── boot/
+│       │   ├── start.S
+│       │   ├── trap.S
+│       │   └── switch.S
+│       │
+│       ├── csr/
+│       │   ├── csr.hh
+│       │   └── csr.cc
+│       │
+│       ├── trap/
+│       │   ├── trap.cc
+│       │   ├── trap_frame.hh
+│       │   └── irq.cc
+│       │
+│       ├── mmu/
+│       │   ├── sv39.cc
+│       │   ├── page_table.hh
+│       │   └── tlb.cc
+│       │
+│       └── linker/
+│           ├── qemu-virt.ld
+│           └── kernel.ld
+│
+├── hal/
+│   ├── mmio/
+│   │   ├── mmio.hh
+│   │   └── barrier.hh
+│   │
+│   ├── device/
+│   │   ├── device.hh
+│   │   ├── driver.hh
+│   │   ├── resource.hh
+│   │   └── manager.hh
+│   │
+│   ├── bus/
+│   │   ├── platform/
+│   │   ├── virtio/
+│   │   ├── pci/
+│   │   ├── spi/
+│   │   └── i2c/
+│   │
+│   └── drivers/
+│       ├── serial/
+│       │   └── ns16550/
+│       │       ├── uart.hh
+│       │       └── uart.cc
+│       │
+│       ├── interrupt/
+│       │   ├── plic/
+│       │   └── clint/
+│       │
+│       ├── timer/
+│       │
+│       ├── gpio/
+│       │
+│       └── virtio/
+│
+├── kernel/
+│   ├── init/
+│   │   └── kernel_init.cc
+│   │
+│   ├── memory/
+│   │   ├── page_allocator.cc
+│   │   ├── kmalloc.cc
+│   │   ├── slab.cc
+│   │   └── heap.cc
+│   │
+│   ├── sched/
+│   │   ├── scheduler.cc
+│   │   ├── task.cc
+│   │   └── context.cc
+│   │
+│   ├── irq/
+│   │   ├── irq.cc
+│   │   └── irq_domain.cc
+│   │
+│   ├── syscall/
+│   │
+│   └── panic/
+│
+├── lib/
+│   ├── c/
+│   ├── cpp/
+│   ├── string/
+│   ├── format/
+│   └── container/
+│
+├── runtime/
+│   ├── crt/
+│   ├── init/
+│   ├── syscalls/
+│   └── picolibc/
+│
+├── platform/
+│   └── qemu-virt/
+│       ├── board.hh
+│       ├── memory_map.hh
+│       ├── platform.cc
+│       └── config.hh
+│
+├── user/
+│
+├── tests/
+│   ├── hal/
+│   ├── kernel/
+│   ├── memory/
+│   ├── sched/
+│   └── stl/
+│
+└── third_party/

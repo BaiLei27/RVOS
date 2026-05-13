@@ -1,19 +1,18 @@
 cmake_minimum_required(VERSION 3.20...3.27)
 
 set(subProjectPath ${CMAKE_SOURCE_DIR}/subprj/inst)
-set(customModulesPath ${subProjectPath}/cmake/Modules CACHE PATH "custom modules directory")
+set(customModulesPath ${subProjectPath}/cmake/Modules CACHE PATH "custom cmake modules directory")
 list(APPEND CMAKE_MODULE_PATH "${customModulesPath}")
 include(ToolsChainConf)
 
 project(RVOS
-    VERSION "0.0.1"
+    VERSION "0.0.2"
     HOMEPAGE_URL "https://github.com/Baiyi27/RVOS.git"
     LANGUAGES CXX C ASM
 )
 
 set(rootPath ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "project root directory")
 set(rootBuilddir ${CMAKE_BINARY_DIR} CACHE PATH "project root builddir")
-set(ldLinkPath ${CMAKE_CURRENT_LIST_DIR}/Startup CACHE PATH "Linker script directory")
 set(_64bitCommonOpts -march=rv64gc -mabi=lp64d -mcmodel=medany)
 set(specsFile
     $<$<COMPILE_LANGUAGE:C>:--specs=picolibc.specs>
@@ -29,54 +28,42 @@ include(CodeCheck)
 include(CustomTarget)
 find_package(Git)
 
-set(INST_builddir ${CMAKE_BINARY_DIR}/build-INST)
+option(enableINST "Whether to enable 'RVINST'" OFF)
+option(enableASM "Whether to enable 'asm'" OFF)
+option(enableTests "Whether to enable 'tests'" OFF)
 
-ExternalProject_Add(
-    INST
-    SOURCE_DIR ${subProjectPath}
-    BINARY_DIR ${INST_builddir}
+if(enableINST)
+    set(INST_builddir ${CMAKE_BINARY_DIR}/build-INST)
+    ExternalProject_Add(
+        INST
+        SOURCE_DIR ${subProjectPath}
+        BINARY_DIR ${INST_builddir}
 
-    CMAKE_ARGS
-    -DCMAKE_MODULE_PATH=${customModulesPath}
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DrootBuilddir=${rootBuilddir}
+        CMAKE_ARGS
+        -DCMAKE_MODULE_PATH=${customModulesPath}
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DrootBuilddir=${rootBuilddir}
 
-    # -DrootPath=${rootPath}
-    INSTALL_COMMAND ""
-)
-
-add_executable(${PROJECT_NAME})
-add_subdirectory(asm)
-add_subdirectory(tests)
-
-target_include_directories(${PROJECT_NAME} PRIVATE
-    inc
-)
-
-target_sources(${PROJECT_NAME} PRIVATE
-
-    # ${ldLinkPath}/os_start.S
-    src/Kernel.cc
-)
-
-target_compile_options(${PROJECT_NAME} PRIVATE
-    ${_64bitCommonOpts}
-    ${specsFile}
-)
-
-target_link_options(${PROJECT_NAME} PRIVATE
-    ${_64bitCommonOpts}
-    ${specsFile}
-
-    # -nostdlib
-    # -nostartfiles
-    # -nodefaultlibs
-    -T ${ldLinkPath}/qemu-virt_rv.ld
-    -Wl,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map
-)
-SetupCodeChecks(${PROJECT_NAME})
+        # -DrootPath=${rootPath}
+        INSTALL_COMMAND ""
+    )
+    add_dependencies(INST merge_compile_commands)
+endif()
 
 DefineCodeChecksTargets("fmt" "tidy")
+
+add_subdirectory(src/Arch)
+add_subdirectory(src/Kernel)
+
+if(enableASM)
+    add_subdirectory(asm)
+endif(
+)
+
+if(enableTests)
+    add_subdirectory(tests)
+endif()
+
 get_filename_component(builddir ${PROJECT_BINARY_DIR} NAME)
 
 # get_filename_component(root ${rootBuilddir} NAME)
@@ -85,7 +72,3 @@ if(ClangFormat_FOUND OR ClangTidy_FOUND)
 endif()
 
 MergeCompileCmdFiles(${CMAKE_BINARY_DIR} ${INST_builddir})
-add_dependencies(RVOS merge_compile_commands)
-add_dependencies(INST merge_compile_commands)
-RunInQEMU(${PROJECT_NAME})
-GenerateASMFile(${PROJECT_NAME} "-DCS")

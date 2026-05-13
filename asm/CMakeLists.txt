@@ -1,20 +1,20 @@
-set(target asm)
+set(module asm)
 
-add_executable(${target})
+add_executable(${module})
 
-target_sources(${target} PRIVATE
-    ${ldLinkPath}/asm_start.S
+target_sources(${module} PRIVATE
+    ${bootPath}/asm_start.S
     main.c
     add.s
     addi.s
 )
 
-target_link_options(${target} PRIVATE
+target_link_options(${module} PRIVATE
     -nostdlib
-    -T ${ldLinkPath}/_asm_start.ld
-    -Wl,-Map=${CMAKE_CURRENT_BINARY_DIR}/${target}.map
+    -T ${linkerPath}/_asm_start.ld
+    -Wl,-Map=${CMAKE_CURRENT_BINARY_DIR}/${module}.map
 )
 
-SetupCodeChecks(${target})
-RunInQEMU(${target})
-GenerateASMFile(${target} "-DCS")
+SetupCodeChecks(${module})
+RunInQEMU(${module})
+GenerateASMFile(${module} "-DCS")

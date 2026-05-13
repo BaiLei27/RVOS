@@ -3,6 +3,7 @@ project(
     VERSION 0.0.1
     LANGUAGES C CXX
 )
+include(CTest)
 
 execute_process(
     COMMAND "${CMAKE_C_COMPILER}" --print-multi-lib
@@ -54,7 +55,7 @@ function(AddRISCVTarget target lang)
     set(linkOpts
         ${specsFile}
         --oslib=semihost
-        -T ${ldLinkPath}/qemu-virt_rv.ld
+        -T ${linkerPath}/qemu-virt_rv.ld
         -march=${ARG_MARCH}
         -mabi=${ARG_ABI}
     )
