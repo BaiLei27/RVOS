@@ -87,7 +87,7 @@ build*/
 # VS and VSCode config files.
 .vscode/
 !/\.vscode/
-**/.vscode/settings.json
+# **/.vscode/settings.json
 
 # pythonenv for github Codespaces
 pythonenv*
@@ -104,3 +104,4 @@ pythonenv*
 # automodapi puts generated documentation files here.
 
 # folder or file that is not ignored (start with `!`)
+.cursorignore

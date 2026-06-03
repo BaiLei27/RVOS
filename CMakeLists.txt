@@ -5,11 +5,17 @@ set(customModulesPath ${subProjectPath}/cmake/Modules CACHE PATH "custom cmake m
 list(APPEND CMAKE_MODULE_PATH "${customModulesPath}")
 include(ToolsChainConf)
 
+set(CMAKE_CXX_STANDARD 23)
+
 project(RVOS
     VERSION "0.0.2"
     HOMEPAGE_URL "https://github.com/Baiyi27/RVOS.git"
     LANGUAGES CXX C ASM
 )
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Debug")
+endif()
 
 set(rootPath ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "project root directory")
 set(rootBuilddir ${CMAKE_BINARY_DIR} CACHE PATH "project root builddir")
@@ -17,11 +23,8 @@ set(_64bitCommonOpts -march=rv64gc -mabi=lp64d -mcmodel=medany)
 set(specsFile
     $<$<COMPILE_LANGUAGE:C>:--specs=picolibc.specs>
     $<$<COMPILE_LANGUAGE:CXX>:--specs=picolibcpp.specs>
+    $<$<CONFIG:Debug>:--oslib=semihost>
 )
-
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Debug")
-endif()
 
 include(ExternalProject)
 include(CodeCheck)
@@ -53,6 +56,7 @@ endif()
 DefineCodeChecksTargets("fmt" "tidy")
 
 add_subdirectory(src/Arch)
+add_subdirectory(src/HAL)
 add_subdirectory(src/Kernel)
 
 if(enableASM)
