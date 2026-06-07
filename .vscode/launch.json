@@ -7,14 +7,19 @@
         {
             "type": "cppdbg",
             "request": "launch",
-            "name": "Debug INST",
-            "program": "${workspaceFolder}/build-x86_64/build-INST/INST.exe",
+            "name": "(GDB) Debug RISC-V Kernel",
+            "program": "build-x86_64/src/Kernel/RVOS",
             "args": [],
-            "cwd": "${workspaceFolder}/build-x86_64/build-INST",
+            "cwd": "${workspaceFolder}",
             "externalConsole": false,
             "MIMode": "gdb",
             "miDebuggerPath": "gdb",
+            "miDebuggerServerAddress": "localhost:1234",
             "setupCommands": [
+                {
+                    "text": "break main",
+                    "ignoreFailures": false
+                },
                 {
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": false
@@ -36,6 +41,34 @@
                     "ignoreFailures": false
                 }
             ],
+            "preLaunchTask": "${defaultBuildTask}"
+        },
+        {
+            //initCommands -> targetCreateCommands -> create breakpoints -> preRunCommands -> processCreateCommands -> postRunCommands -> debug
+            "type": "lldb",
+            "request": "launch",
+            "name": "(LLDB) Debug RISC-V Kernel",
+            "program": "build-x86_64/src/Kernel/RVOS",
+            "cwd": "${workspaceFolder}",
+            "postRunCommands": [
+                // "breakpoint set -n _start",
+                "breakpoint set -n main"
+            ],
+            "processCreateCommands": [
+                "settings set target.default-arch riscv64",
+                "settings set target.memory-module-load-level complete",
+                "gdb-remote localhost:1234",
+                "continue"
+            ],
+            // "stdio": [
+            //     null,
+            //     null,
+            //     null
+            // ]
+            "sourceMap": {
+                "/": "${workspaceFolder}/"
+            },
+            "preLaunchTask": "${defaultBuildTask}"
         }
     ],
     // "preLaunchTask": "${command:cmake.build}"

@@ -1,0 +1,24 @@
+{
+    "clangd.arguments": [
+        "--all-scopes-completion",
+        "--completion-style=detailed",
+        // "--compile-commands-dir=build",
+        "--compile-commands-dir=build-${env:ARCH}",
+        "--fallback-style=WebKit",
+        "--function-arg-placeholders=false",
+        "--header-insertion=never",
+        // "--background-index-priority=low",
+        "-j=8",
+        //  "--log=verbose",
+        "--log=info",
+        // "--clang-tidy",
+        // "--pch-storage=memory"
+        "--query-driver=/usr/bin/riscv64-unknown-elf-g++",
+    ],
+    "clangd.fallbackFlags": [
+        // "-xc++",
+        // "-std=c++23",
+        "-I${workspaceFolder}/**",
+        "--target=riscv64-unknown-elf",
+    ],
+}

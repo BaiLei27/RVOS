@@ -1,0 +1,32 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "qemu-dbg",
+            "type": "shell",
+            "command": "./scripts/shell/qemu_run.sh",
+            "args": [
+                "build-x86_64/src/Kernel/RVOS",
+                "-S",
+                "-s"
+            ],
+            "isBackground": true,
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "pwd",
+            "type": "shell",
+            "command": "echo $(pwd)",
+        }
+    ],
+}
