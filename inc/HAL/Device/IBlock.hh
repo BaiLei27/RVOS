@@ -2,15 +2,12 @@
 
 #include <cstdint>
 
-class IChar {
+namespace dev {
+
+/// @brief Legacy block device marker. Prefer hal::concepts::BlockDevice.
+class IBlock {
 public:
-    virtual ~IChar()= default;
-
-    uintptr_t Base() const noexcept;
-
-protected:
-    explicit IChar(uintptr_t base);
-
-private:
-    uintptr_t Base_;
+    virtual ~IBlock()= default;
 };
+
+} // namespace dev
