@@ -43,7 +43,15 @@ public:
 
     int GetConfig(drv::uart::Config &cfg) const { return this->Self().GetConfig(cfg); }
 
+    [[nodiscard]] virtual int GetIRQ() const { return IRQ_; }
+
 protected:
-    Serial() = default;
+    Serial()= default;
+
+    explicit Serial(uint8_t irq): IRQ_(irq) { }
+
     ~Serial()= default;
+
+protected:
+    uint8_t IRQ_ {};
 };

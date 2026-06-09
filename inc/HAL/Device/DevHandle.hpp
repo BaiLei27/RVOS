@@ -39,7 +39,9 @@ public:
           pDeinit_(deinitThunk<D>),
           pGetName_(getNameThunk<D>),
           pGetChar_(getCharThunk<D>),
-          pPutChar_(putCharThunk<D>)
+          pPutChar_(putCharThunk<D>),
+          pSetConfig_(setConfigThunk<D>),
+          pGetConfig_(getConfigThunk<D>)
     {
     }
 
