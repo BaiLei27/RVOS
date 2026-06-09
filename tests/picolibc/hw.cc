@@ -14,18 +14,16 @@ extern void uart_put_hex(uint32_t num);
 extern void uart_put_long_hex(uint64_t num);
 
 extern "C" {
-    void _exit(int status)
-    {
-        (void)status;
+    // void _exit(int status)
+    // {
+    //     (void)status;
 
-        // Ensure all prior memory operations are completed before entering halt state
-        asm volatile("" ::: "memory");
+    //     asm volatile("" ::: "memory"); // Ensure all prior memory operations are completed before entering halt state
 
-        // Halt cpu by entering infinite loop
-        while(true) {
-            asm volatile("wfi");
-        }
-    }
+    //     while(true) { // Halt cpu by entering infinite loop
+    //         asm volatile("wfi");
+    //     }
+    // }
 }
 
 int main()
@@ -59,6 +57,5 @@ int main()
         uart_puts(" -> ");
         uart_puts(v.data());
     }
-
-    return 0;
+    exit(0);
 }

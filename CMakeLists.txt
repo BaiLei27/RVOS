@@ -65,6 +65,8 @@ endif(
 )
 
 if(enableTests)
+    message(STATUS "Tests enabled — configure with: cmake --build <builddir> -t tests && ctest --test-dir <builddir>")
+    enable_testing()
     add_subdirectory(tests)
 endif()
 
