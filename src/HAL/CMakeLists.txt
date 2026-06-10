@@ -7,6 +7,7 @@ set(halIncDir
 
 add_library(${module} STATIC
     Device/DevManager.cc
+    Drivers/Serial/ns16550A.cc
 )
 
 target_include_directories(${module} PUBLIC ${halIncDir})
