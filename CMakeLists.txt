@@ -25,6 +25,7 @@ set(specsFile
     $<$<COMPILE_LANGUAGE:CXX>:--specs=picolibcpp.specs>
     $<$<CONFIG:Debug>:--oslib=semihost>
 )
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 include(ExternalProject)
 include(CodeCheck)

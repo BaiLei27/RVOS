@@ -15,8 +15,8 @@ namespace dev {
 
 class Manager: public ISingleton<Manager> {
 public:
-    explicit Manager(Access a): ISingleton<Manager>(a) { } // This is the only valid singleton entry for construction.
-
+    // explicit Manager(Access a): ISingleton<Manager>(a) { } // This is the only valid singleton entry for construction.
+    using ISingleton<Manager>::ISingleton;
 public:
     static constexpr std::size_t G_kMaxDevices { 32 };
 
