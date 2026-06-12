@@ -8,6 +8,9 @@ set(incDir
 )
 
 add_executable(${CMAKE_PROJECT_NAME})
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+)
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${incDir})
 
@@ -17,6 +20,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE HAL)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Arch)
 
 target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
     ${_64bitCommonOpts}
