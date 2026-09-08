@@ -23,5 +23,5 @@ protected:
 
     explicit ISingleton(Access /*unused*/) { }
 
-    virtual ~ISingleton()= default;
+    ~ISingleton()= default; // Non-virtual: CRTP singletons are not deleted through ISingleton*.
 };

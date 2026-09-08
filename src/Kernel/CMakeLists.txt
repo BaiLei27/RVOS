@@ -17,6 +17,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE HAL)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Arch)
 
 target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
     ${_64bitCommonOpts}
