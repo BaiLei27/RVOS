@@ -13,20 +13,10 @@
 extern "C" void s_trap_vector_base(void);
 
 namespace arch::trap {
-[[noreturn]] void SupervisorTrap::PanicOnSyncException() noexcept
-{
-    /*
-    printf("PANIC hart%lu: sync trap code=%lu (%s) sepc=0x%lx stval=0x%lx\n",
-           HartId_,
-           Scause_.code_,
-           ExceptionName(Scause_.code_).data(),
-           Epc_,
-           Stval_);
-    */
-    while(true) {
-        __asm__ volatile("wfi");
-    }
-}
+
+namespace {
+void (*g_tickHandler)() noexcept = nullptr;
+} // namespace
 
 std::string_view SupervisorTrap::ExceptionName(uint64_t code) noexcept
 {
@@ -46,16 +36,6 @@ std::string_view SupervisorTrap::ExceptionName(uint64_t code) noexcept
     }
 }
 
-SupervisorTrap &SupervisorTrap::TrapForHart(uint64_t hartid) noexcept
-{
-    static SupervisorTrap s_traps[G_kMaxHarts] {};
-
-    if(hartid >= G_kMaxHarts) {
-        hartid= 0;
-    }
-    return s_traps[hartid];
-}
-
 SupervisorTrap &SupervisorTrap::GetInstance() noexcept
 {
     return GetInstance(csr::Manager::Cpuid());
@@ -63,17 +43,22 @@ SupervisorTrap &SupervisorTrap::GetInstance() noexcept
 
 SupervisorTrap &SupervisorTrap::GetInstance(uint64_t hartid) noexcept
 {
-    return TrapForHart(hartid);
+    static SupervisorTrap s_traps[G_kMaxHarts] {};
+    return s_traps[hartid < G_kMaxHarts ? hartid : 0];
+}
+
+void SupervisorTrap::SetTickHandler(void (*pHandler)() noexcept) noexcept
+{
+    g_tickHandler= pHandler;
 }
 
 void SupervisorTrap::setupVector() noexcept
 {
-    csr::Manager::Instance().WriteStvec(std::bit_cast<uint64_t>(&s_trap_vector_base) | 1U);
+    csr::Manager::Instance().WriteStvec(std::bit_cast<uint64_t>(&s_trap_vector_base));
 }
 
 [[noreturn]] void SupervisorTrap::panic(const char * /*pMsg*/) noexcept
 {
-    // printf("Panic: %s\n", pMsg);
     while(true) {
         __asm__ volatile("wfi");
     }
@@ -82,27 +67,20 @@ void SupervisorTrap::setupVector() noexcept
 void SupervisorTrap::OnTrap() noexcept
 {
     auto &csr   = csr::Manager::Instance();
-    Epc_        = csr.ReadSepc();
     Scause_.raw_= csr.ReadScause();
-    Sstatus_    = csr.ReadSstatus();
+    Epc_        = csr.ReadSepc();
     Stval_      = csr.ReadStval();
+    Sstatus_    = csr.ReadSstatus();
     HartId_     = csr::Manager::Cpuid();
 
     if(!csr::Manager::IsFromSupervisorMode(Sstatus_)) {
         panic("not from supervisor mode");
     }
-    if(csr::Manager::IsSupervisorInterruptEnabled(Sstatus_)) {
-        panic("interrupts enabled");
-    }
 
-    if(Scause_.interrupt_ != 0U) {
-        Epc_= handleInterrupt();
-    } else {
-        Epc_= handleException();
+    const uint64_t NewEpc= (Scause_.interrupt_ != 0U) ? handleInterrupt(csr) : handleException();
+    if(NewEpc != Epc_) {
+        csr.WriteSepc(NewEpc);
     }
-
-    csr.WriteSstatus(Sstatus_);
-    csr.WriteSepc(Epc_);
 }
 
 void SupervisorTrap::Init()
@@ -110,19 +88,20 @@ void SupervisorTrap::Init()
     setupVector();
 }
 
-uint64_t SupervisorTrap::handleInterrupt() noexcept
+uint64_t SupervisorTrap::handleInterrupt(csr::Manager &csr) noexcept
 {
     switch(static_cast<InterruptCause>(Scause_.code_)) {
     case InterruptCause::SUPERVISOR_SOFTWARE:
-    case InterruptCause::SUPERVISOR_EXTERNAL: break; // printf("hart%lu interrupt: supervisor software/external\n", HartId_);
-    case InterruptCause::SUPERVISOR_TIMER:    {
-        // printf("hart%lu interrupt: supervisor timer\n", HartId_);
-        auto &csr= csr::Manager::Instance();
+    case InterruptCause::SUPERVISOR_EXTERNAL:
+        break;
+    case InterruptCause::SUPERVISOR_TIMER: {
         csr.SetStimecmpIntervalTicks();
+        if(g_tickHandler != nullptr) {
+            g_tickHandler();
+        }
         break;
     }
     default:
-        // printf("hart%lu interrupt: code=%lu\n", HartId_, Scause_.code_);
         break;
     }
     return Epc_;
@@ -132,19 +111,14 @@ uint64_t SupervisorTrap::handleException() noexcept
 {
     switch(static_cast<SyncException>(Scause_.code_)) {
     case SyncException::BREAKPOINT:
-    case SyncException::ECALL_FROM_S_MODE: return Epc_ + 4U; // printf("hart%lu breakpoint/ecall at 0x%lx\n", HartId_, Epc_);
-    case SyncException::LOAD_ACCESS_FAULT:
-    case SyncException::STORE_AMO_FAULT:
-    case SyncException::LOAD_ADDR_MISALIGNED:
-    case SyncException::STORE_ADDR_MISALIGNED:
-    case SyncException::ILLEGAL_INST:
-        break;
+    case SyncException::ECALL_FROM_S_MODE:
+        return Epc_ + 4U;
     default:
-        panic("unknown sync exception");
+        break;
     }
-    //return Epc_ + 4U; //no hang on
-    PanicOnSyncException();
+    panic("unknown sync exception");
 }
+
 } // namespace arch::trap
 
 extern "C" void s_trap_handler()

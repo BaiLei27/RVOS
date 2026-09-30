@@ -1,12 +1,16 @@
 /**
  * @file Trap.hh
- * @brief Supervisor-mode trap (S-mode, vectored)
+ * @brief Supervisor-mode trap (S-mode, direct stvec)
  */
 #pragma once
 
 #include <cstddef>
 #include <cstdint>
 #include <string_view>
+
+namespace arch::csr {
+class Manager;
+}
 
 namespace arch::trap {
 
@@ -34,17 +38,16 @@ class SupervisorTrap {
 public:
     static SupervisorTrap &GetInstance() noexcept;
     static SupervisorTrap &GetInstance(uint64_t hartid) noexcept;
-    static SupervisorTrap &TrapForHart(uint64_t hartid) noexcept;
 
     void OnTrap() noexcept;
     static void Init();
+    static void SetTickHandler(void (*pHandler)() noexcept) noexcept;
 
     [[nodiscard]] static std::string_view ExceptionName(uint64_t code) noexcept;
-    [[noreturn]] static void PanicOnSyncException() noexcept;
 
 private:
     static void setupVector() noexcept;
-    uint64_t handleInterrupt() noexcept;
+    uint64_t handleInterrupt(csr::Manager &csr) noexcept;
     uint64_t handleException() noexcept;
     [[noreturn]] static void panic(const char *pMsg) noexcept;
 

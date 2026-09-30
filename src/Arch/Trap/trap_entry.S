@@ -1,38 +1,22 @@
 /*
- * Vectored stvec: BASE + 4 * scause.
+ * S-mode trap entry, direct (non-vectored) stvec mode.
+ *
+ * On entry the hardware has already:
+ *   - saved the interrupted PC into sepc
+ *   - updated sstatus: SPIE = SIE, SIE = 0, SPP = previous privilege mode
+ * We save the caller-saved registers plus tp (Cpuid() reads it), call the
+ * C++ dispatcher, restore them and sret.
  */
 .section .text.svec_table, "ax", @progbits
 .align 4
 .globl s_trap_vector_base
 
 s_trap_vector_base:
-    j       trap_save_entry         /* 0  : synchronous exception */
-    j       trap_save_entry         /* 1  : supervisor software interrupt */
-    j       trap_resv               /* 2  : reserved */
-    j       trap_resv               /* 3  */
-    j       trap_resv               /* 4  */
-    j       trap_save_entry         /* 5  : supervisor timer interrupt */
-    j       trap_resv               /* 6  */
-    j       trap_resv               /* 7  */
-    j       trap_resv               /* 8  */
-    j       trap_save_entry         /* 9  : supervisor external interrupt */
-    .rept   22
-    j       trap_unknown
-    .endr
-
-trap_resv:
-trap_unknown:
-    j       trap_save_entry
-
-.text
-.align 4
-.globl s_trap_handler
-
-trap_save_entry:
     addi    sp, sp, -256
 
     sd      ra,  0(sp)
     sd      gp,  16(sp)
+    sd      tp,  24(sp)
     sd      t0,  32(sp)
     sd      t1,  40(sp)
     sd      t2,  48(sp)
@@ -53,6 +37,7 @@ trap_save_entry:
 
     ld      ra,  0(sp)
     ld      gp,  16(sp)
+    ld      tp,  24(sp)
     ld      t0,  32(sp)
     ld      t1,  40(sp)
     ld      t2,  48(sp)

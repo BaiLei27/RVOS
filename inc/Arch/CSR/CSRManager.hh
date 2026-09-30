@@ -155,12 +155,6 @@ public:
     ~Manager() noexcept                          = default;
 
 public:
-    void WriteReg(Reg csr, uint64_t value) noexcept;
-    [[nodiscard]] uint64_t ReadReg(Reg csr) noexcept;
-
-    void SetBits(Reg csr, uint64_t mask) noexcept;
-    void ClearBits(Reg csr, uint64_t mask) noexcept;
-
     [[nodiscard]] uint64_t ReadSstatus() noexcept;
     [[nodiscard]] uint64_t ReadSepc() noexcept;
     [[nodiscard]] uint64_t ReadScause() noexcept;
@@ -174,15 +168,17 @@ public:
     void SetStimecmpIntervalTicks() noexcept;
 
     [[nodiscard]] static bool IsFromSupervisorMode(uint64_t sstatus) noexcept;
-    [[nodiscard]] static bool IsSupervisorInterruptEnabled(uint64_t sstatus) noexcept;
 
     /* mepc <- entry, tp <- hartid, mret into S-mode. */
     [[noreturn]] void StartSupervisorMode(void (*pEntry)()) noexcept;
     [[nodiscard]] static uint64_t Cpuid() noexcept;
 
-    /** enable timer interrupt. */
+    /** enable / disable S-mode interrupts (sstatus.SIE). */
+    void EnableInterrupts() noexcept;
+    void DisableInterrupts() noexcept;
+
+    /** enable / disable the S-mode timer interrupt (sie.STIE). */
     void EnableTimerInterrupt() noexcept;
-    /** disable timer interrupt. */
     void DisableTimerInterrupt() noexcept;
 
 private:
@@ -203,6 +199,18 @@ private:
         uint64_t value= 0;
         __asm__ volatile("csrr %0, %1" : "=r"(value) : "i"(static_cast<uint16_t>(Csr)) : "memory");
         return value;
+    }
+
+    template <Reg Csr>
+    void setCsrBits(uint64_t mask) noexcept
+    {
+        __asm__ volatile("csrrs zero, %0, %1" : : "i"(static_cast<uint16_t>(Csr)), "r"(mask) : "memory");
+    }
+
+    template <Reg Csr>
+    void clearCsrBits(uint64_t mask) noexcept
+    {
+        __asm__ volatile("csrrc zero, %0, %1" : : "i"(static_cast<uint16_t>(Csr)), "r"(mask) : "memory");
     }
 };
 
