@@ -20,7 +20,7 @@ public:
     virtual int Puts(std::string_view text)
     {
         for(const auto &c: text) {
-            if(this->PutChar(c) < 0) {
+            if(PutChar(c) < 0) {
                 return -1;
             }
         }

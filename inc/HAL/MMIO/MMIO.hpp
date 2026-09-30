@@ -23,11 +23,11 @@ public:
 
     PMMIO &operator= (T val)
     {
-        this->Write(val);
+        Write(val);
         return *this;
     }
 
-    explicit operator T() const { return this->Read(); }
+    explicit operator T() const { return Read(); }
 
 public:
     T Read() const { return *Addr_; }
@@ -65,7 +65,7 @@ public:
         return *this;
     }
 
-    explicit operator T() const { return this->Read(); }
+    explicit operator T() const { return Read(); }
 
 public:
     [[nodiscard]] T Read() const { return Val_; }

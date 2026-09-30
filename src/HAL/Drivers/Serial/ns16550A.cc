@@ -2,7 +2,7 @@
 #include "Drivers/Serial/ns16550A.hh"
 
 NS16550A::NS16550A(uintptr_t base, uint8_t irq)
-    : Serial<NS16550A>(irq),
+    : Serial(irq),
       Regs_(std::launder(reinterpret_cast<ns16x50::Regs *>(base))),
       PhysAddr_(base)
 {
@@ -28,7 +28,7 @@ int NS16550A::Init()
     }
 
     Regs_->ierDlm_.Write(0x00); // disable all interrupts
-    this->applyUartConfig();
+    applyUartConfig();
 
     Regs_->iirFcr_.Write(ns16x50::FCR::FIFOEN
                          | ns16x50::FCR::RCVRCLR
@@ -76,7 +76,7 @@ int NS16550A::SetConfig(const drv::uart::Config &cfg)
 
     Cfg_= cfg;
     if(HasInit_) {
-        this->applyUartConfig();
+        applyUartConfig();
     }
     return 0;
 }
@@ -92,8 +92,8 @@ void NS16550A::applyUartConfig()
     if(Cfg_.baudRate_ == 0 || ClockHz_ == 0) {
         return;
     }
-    this->calcDivisor();
-    this->setBaudRate();
+    calcDivisor();
+    setBaudRate();
     Regs_->lcr_.Write(buildLcr()); // data bits, stop bits, parity, clear DLAB
     Regs_->ierDlm_.Write(0x00);    // restore interrupts to default
 

@@ -26,7 +26,7 @@
 #     (style):
 #           <sty> {Only the spaces, formatting indentation, commas, etc. were changed, not the code logic}
 #     (refactor):
-#           <ref> {Code refactoring, no new features added or bugs fixed}
+#           <reft> {Code refactoring, no new features added or bugs fixed}
 #     (performance):
 #           <perf> {Optimization-related, such as improving performance, experience}
 #     (tests):
