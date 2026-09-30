@@ -89,25 +89,40 @@
 
 # [RVOS]
 
+> Current status summary (updated 2026-09-30)
+>
+> **Done**
+> * Boot: picolibc link/startup (text/data/bss/stack/heap) + UART early print
+> * S-mode Trap: direct-mode stvec entry (`trap_entry.S`), dispatch (exception/interrupt), `SetTickHandler()` tick hook
+> * Interrupt/Timer: SSTC `stimecmp` timer + `sstatus/sie` interrupt toggles (`CSRManager`)
+> * HAL: device manager (`DevManager`/`DevHandle`), NS16550A UART driver, MMIO register wrapper, CRTP→deducing-this char/serial interfaces
+>
+> **Not started**
+> * Memory management, task/context switching, multitasking & scheduler, synchronization primitives (lock/semaphore/queue), soft timers, syscalls, PLIC/peripheral interrupts
+>
+> See `docs/Development.md` for feature and interface details.
+
+---
+
 ## 1.Boot（启动与基本运行环境）
 ---
 ### 1.1 启动与链接（）
 
-* [ ] 链接脚本 text/data/bss/stack/heap
-* [ ] 启动符号
-* [ ] 数据段拷贝与 bss 清零
+* [x] Linker script text/data/bss/stack/heap (picolibc + `src/Arch/Linker/qemu-virt_rv.ld`)
+* [x] Startup symbols (picolibc `_start`)
+* [x] .data copy & .bss zeroing (done by picolibc startup)
 
 ### 1.2 启动代码（汇编）
 
-* [ ] `_start`：关中断、初始化 sp
-* [ ] 设置 mtvec 指向 trap entry
-* [ ] 切换到 C：调用 `kernel_boot()`
-* [ ] 初始化 UART 供早期打印使用
+* [x] `_start`: disable interrupts, init sp (done by picolibc startup)
+* [ ] Set mtvec to trap entry (M-mode trap unused; only S-mode stvec so far)
+* [x] Switch to C: call `main()` → `Kernel::Instance().Run()`
+* [x] Init UART for early print (`g_uart0` / `Kernel::init()`)
 
 ### 1.3 Boot 阶段自检
 
-* [ ] 栈越界检测（可选）
-* [ ] 简单内核日志系统初始化
+* [ ] Stack overflow detection (optional)
+* [ ] Kernel log system init (currently prints directly via UART; `subprj/inst/Logger` is a separate GUI subproject)
 
 ---
 
@@ -193,21 +208,21 @@
 
 ### 5.1 Trap 入口（汇编）
 
-* [ ] 保存全寄存器
-* [ ] 切换到内核栈（如使用）
-* [ ] 跳转 C 级 trap handler
+* [x] Save registers (`trap_entry.S`: caller-saved + gp/tp, direct-mode stvec)
+* [ ] Switch to kernel stack (if used)
+* [x] Jump to C trap handler (`s_trap_handler` → `SupervisorTrap::OnTrap()`)
 
 ### 5.2 Trap 分发
 
-* [ ] 异常类型判断（instruction fault, load fault, ecall）
-* [ ] 中断类型判断（timer, software, external）
-* [ ] trap→scheduler 通路（timer software）
+* [x] Exception type dispatch (`handleException()`: ecall/breakpoint resume, others panic)
+* [x] Interrupt type dispatch (`handleInterrupt()`: timer / software / external)
+* [ ] trap → scheduler path (timer software)
 
 ### 5.3 异常处理
 
-* [ ] 非法指令 panic
-* [ ] load/store fault report
-* [ ] ecall 实现系统调用入口
+* [x] Illegal instruction panic
+* [x] load/store fault report (currently halts, no detail output)
+* [ ] ecall as syscall entry (currently only `sepc += 4` then returns, no syscall dispatch)
 
 ---
 
@@ -217,9 +232,9 @@
 
 ### 6.1 M 模式中断控制
 
-* [ ] mie/mstatus API
-* [ ] 全局中断开关
-* [ ] 中断优先级（RISC-V M 模式简单即可）
+* [x] sie/sstatus API (`CSRManager`: `EnableTimerInterrupt`/`DisableTimerInterrupt` etc., single-instruction `csrrs/csrrc`)
+* [x] Global interrupt toggle (`CSRManager::EnableInterrupts()/DisableInterrupts()`, sstatus.SIE)
+* [ ] Interrupt priority (simple M-mode is enough)
 
 ### 6.2 IRQ 框架
 
@@ -240,15 +255,15 @@
 
 ### 7.1 CLINT / MTIME
 
-* [ ] mtime 读
-* [ ] mtimecmp 写
-* [ ] 设定系统 tick（例如 1ms）
+* [x] time read (`CSRManager::ReadTime()` / `csrr time`)
+* [x] stimecmp write (SSTC, not mtimecmp: `SetStimecmpIntervalTicks()`)
+* [x] Set system tick (`Timer::INTERVAL_TICKS`, ~1s under QEMU)
 
 ### 7.2 Tick 模块
 
-* [ ] tick++
-* [ ] 唤醒延时任务
-* [ ] 通知调度器（pend_schedule）
+* [x] tick++ (`Kernel::OnTimerTick()` → `TickCount_`, registered via `SupervisorTrap::SetTickHandler`)
+* [ ] Wake delayed tasks
+* [ ] Notify scheduler (pend_schedule)
 
 ### 7.3 高级
 
@@ -351,7 +366,7 @@
 ---
 
 * 软件 watchdog
-* 设备驱动层 HAL
+* [x] Device driver HAL (`DevManager`/`DevHandle`/`NS16550A`/`MMIO`/deducing-this `Char`/`Serial`)
 * Shell 命令行
 * 动态任务加载
 * VFS 文件系统
