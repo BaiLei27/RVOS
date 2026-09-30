@@ -120,7 +120,7 @@ enum MSR : uint8_t {
 
 } // namespace ns16x50
 
-class NS16550A final: public Serial<NS16550A> {
+class NS16550A final: public Serial {
 private:
     drv::uart::Config Cfg_;
     ns16x50::Regs *const Regs_ {}; // NOLINT
