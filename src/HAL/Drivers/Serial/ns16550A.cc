@@ -2,7 +2,7 @@
 #include "Drivers/Serial/ns16550A.hh"
 
 NS16550A::NS16550A(uintptr_t base, uint8_t irq)
-    : Serial<NS16550A>(irq),
+    : Serial(irq),
       Regs_(std::launder(reinterpret_cast<ns16x50::Regs *>(base))),
       PhysAddr_(base)
 {

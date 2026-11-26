@@ -1,3 +1,5 @@
+#include "CSR/CSRManager.hh"
+#include "Trap/Trap.hh"
 #include "Platform/MemLayout.hh"
 #include "Kernel/Kernel.hh"
 
@@ -38,8 +40,27 @@ int Kernel::init()
 
 int Kernel::Run()
 {
-    this->init();
-    while(true) {
+    if(init() != 0) {
+        return -1;
+    }
+
+    // Install the S-mode trap vector, register the timer tick hook, then
+    // drop from M-mode into S-mode. StartSupervisorMode does not return.
+    arch::trap::SupervisorTrap::SetTickHandler(Kernel::OnTimerTick);
+    arch::trap::SupervisorTrap::Init();
+    arch::csr::Manager::Instance().StartSupervisorMode(Kernel::SupervisorMain);
+}
+
+void Kernel::SupervisorMain() noexcept
+{
+    // Running in S-mode: enable delegated interrupts, then idle.
+    arch::csr::Manager::Instance().EnableInterrupts();
+    for(;;) {
         __asm__ volatile("wfi" ::: "memory");
     }
+}
+
+void Kernel::OnTimerTick() noexcept
+{
+    ++Kernel::Instance().TickCount_;
 }
