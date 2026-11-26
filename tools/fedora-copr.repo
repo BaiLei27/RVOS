@@ -1,0 +1,10 @@
+[copr:copr.fedorainfracloud.org:rezso:HDL]
+name=Copr repo for HDL owned by rezso
+baseurl=https://download.copr.fedorainfracloud.org/results/rezso/HDL/fedora-$releasever-$basearch/
+type=rpm-md
+skip_if_unavailable=True
+gpgcheck=0
+gpgkey=https://download.copr.fedorainfracloud.org/results/rezso/HDL/pubkey.gpg
+repo_gpgcheck=0
+enabled=1
+enabled_metadata=1
